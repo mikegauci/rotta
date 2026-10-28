@@ -11,16 +11,16 @@ Rebuild of rotta.mt (Malta automotive community site) from WordPress to **Next.j
 
 ## Stack
 
-| Layer | Choice |
-|---|---|
-| App | Next.js (App Router), TypeScript, Tailwind, shadcn/ui |
-| Hosting | Vercel — team "mikegauci's projects" |
-| DB / Auth / Storage | Supabase project `rotta` (ref `wdctbixfjvwbvqlylpuf`, eu-west-1) |
-| Payments | Stripe — **same Stripe account as the current WooCommerce store** |
-| Email | Resend (orders, directory/contact notifications) |
-| Rich text | Tiptap |
-| Analytics | GA4 `G-Y1D8J24FMB` |
-| Repo | github.com/mikegauci/rotta |
+| Layer               | Choice                                                            |
+| ------------------- | ----------------------------------------------------------------- |
+| App                 | Next.js (App Router), TypeScript, Tailwind, shadcn/ui             |
+| Hosting             | Vercel — team "mikegauci's projects"                              |
+| DB / Auth / Storage | Supabase project `rotta` (ref `wdctbixfjvwbvqlylpuf`, eu-west-1)  |
+| Payments            | Stripe — **same Stripe account as the current WooCommerce store** |
+| Email               | Resend (orders, directory/contact notifications)                  |
+| Rich text           | Tiptap                                                            |
+| Analytics           | GA4 `G-Y1D8J24FMB`                                                |
+| Repo                | github.com/mikegauci/rotta                                        |
 
 Rendering: public content pages are statically generated / ISR and revalidated from the CMS; cart, checkout, My Business and `/admin` are dynamic.
 
@@ -28,18 +28,35 @@ Rendering: public content pages are statically generated / ISR and revalidated f
 
 WordPress + Astra (child theme) + Getwid blocks.
 
-| Section | WP implementation | Volume | Notes |
-|---|---|---|---|
-| Blog | Posts | 15 posts, 3 categories, 26 tags | |
-| Directory | **Formidable Forms** entries + Views | ~150 businesses | Step-by-step filter: I drive… → Vehicle era → Parts/Service → Region |
-| My Business | Formidable form + login/reset-password pages | | Owners add/edit their own listing |
-| Events | **Formidable Forms** entries + calendar/carousel Views | ~220 | |
-| Watch | YouTube (channel `UCnAE_OMHV3VxcbrXq4_v-7g`) | 116 videos | MP4 background videos on home + watch |
-| Marketplace | WP pages | 3 vehicles | "Contact us to list" |
-| Shop | WooCommerce + woo-fly-cart, variation swatches, grouped products; Stripe | 18 products (many variable) | |
-| Other | Contact Form 7, Redirection, Yoast, Instagram feed | | |
+| Section     | WP implementation                                                        | Volume                          | Notes                                                                |
+| ----------- | ------------------------------------------------------------------------ | ------------------------------- | -------------------------------------------------------------------- |
+| Blog        | Posts                                                                    | 15 posts, 3 categories, 26 tags |                                                                      |
+| Directory   | **Formidable Forms** entries + Views                                     | ~150 businesses                 | Step-by-step filter: I drive… → Vehicle era → Parts/Service → Region |
+| My Business | Formidable form + login/reset-password pages                             |                                 | Owners add/edit their own listing                                    |
+| Events      | **Formidable Forms** entries + calendar/carousel Views                   | ~220                            |                                                                      |
+| Watch       | YouTube (channel `UCnAE_OMHV3VxcbrXq4_v-7g`)                             | 116 videos                      | MP4 background videos on home + watch                                |
+| Marketplace | WP pages                                                                 | 3 vehicles                      | "Contact us to list"                                                 |
+| Shop        | WooCommerce + woo-fly-cart, variation swatches, grouped products; Stripe | 18 products (many variable)     |                                                                      |
+| Other       | Contact Form 7, Redirection, Yoast, Instagram feed                       |                                 |                                                                      |
 
 Drop these junk pages: `/test/`, `/test34rt/`, `/slide-anything-popup-preview/`.
+
+## Commands
+
+```bash
+pnpm dev           # local dev server
+pnpm build         # production build
+pnpm lint          # eslint
+pnpm typecheck     # next typegen + tsc
+pnpm format        # prettier (with Tailwind class sorting)
+```
+
+## Conventions
+
+- Next.js 16: middleware is `src/proxy.ts`; `cacheComponents` is on. Read `node_modules/next/dist/docs/` before using unfamiliar APIs (see AGENTS.md).
+- Supabase clients: `@/lib/supabase/server` (Server Components, Route Handlers, Server Actions), `@/lib/supabase/client` (Client Components). Env is read through `@/lib/env`.
+- DB changes are SQL files in `supabase/migrations/` (timestamped), applied with the Supabase connector. No Supabase CLI dependency.
+- One PR per plan item, branch `pr/NN-name`.
 
 ## Product decisions
 
@@ -79,4 +96,4 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 ## Status
 
 - [ ] Exports received
-- [ ] PR 1 Foundation
+- [ ] PR 1 Foundation (in review)
