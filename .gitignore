@@ -1,0 +1,4 @@
+.env*
+migration/exports/
+node_modules/
+.next/
