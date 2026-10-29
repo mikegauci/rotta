@@ -1,5 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { getStripe } from "@/lib/stripe";
+import { after } from "next/server";
+import {
+  createCheckoutSession,
+  reconcileCheckouts,
+  RESERVATION_MINUTES,
+  SESSION_MINUTES,
+  stripeIsLive,
+} from "@/lib/checkout";
 import { env } from "@/lib/env";
 import { publicDb } from "@/lib/supabase/public";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,11 +27,12 @@ export async function POST(request: Request) {
   if (request.headers.get("origin") !== new URL(request.url).origin)
     return Response.json({ error: "Invalid request." }, { status: 403 });
   let reserved: string | null = null;
-  let stripeRequestStarted = false;
   const db = createAdminClient();
+  // Settle lapsed reservations and pending emails after responding.
+  after(() => reconcileCheckouts().catch(() => undefined));
   try {
-    const stripe = getStripe();
-    if (!db) throw new Error("Payments are not configured yet.");
+    if (!db || !env.stripeSecretKey)
+      throw new Error("Payments are not configured yet.");
     const text = await request.text();
     if (text.length > 16000)
       return Response.json({ error: "Cart is too large." }, { status: 400 });
@@ -106,6 +114,7 @@ export async function POST(request: Request) {
       throw new Error("Delivery is unavailable. Please contact us.");
     const user = await getCurrentUser();
     const id = randomUUID();
+    const now = Date.now();
     const reservation = await db.rpc("reserve_shop_checkout", {
       checkout_id: id,
       customer: user?.id ?? null,
@@ -113,56 +122,70 @@ export async function POST(request: Request) {
       shipping: shipping.price_cents,
       shipping_label: shipping.label,
       vat: settings.vat_rate,
+      live: stripeIsLive(),
+      expires: new Date(now + RESERVATION_MINUTES * 60_000).toISOString(),
     });
     if (reservation.error)
       throw new Error(
         "Stock or prices have changed. Please refresh your cart and try again.",
       );
     reserved = id;
-    stripeRequestStarted = true;
-    const session = await stripe.checkout.sessions.create(
+    const result = await createCheckoutSession(db, id, {
+      mode: "payment",
+      allowed_payment_method_types: ["card"],
+      customer_email: user?.email,
+      customer_creation: "always",
+      client_reference_id: id,
+      metadata: { checkout_id: id },
+      expires_at: Math.floor(now / 1000) + SESSION_MINUTES * 60,
+      billing_address_collection: "required",
+      phone_number_collection: { enabled: true },
+      shipping_address_collection: { allowed_countries: ["MT"] },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            display_name: shipping.label,
+            type: "fixed_amount",
+            fixed_amount: { amount: shipping.price_cents, currency: "eur" },
+          },
+        },
+      ],
+      line_items: lines.map((i) => ({
+        quantity: i.quantity,
+        price_data: {
+          currency: "eur",
+          unit_amount: i.unit_price_cents,
+          product_data: {
+            name: i.name,
+            description:
+              Object.values(i.option_values as Record<string, string>).join(
+                " / ",
+              ) || undefined,
+          },
+        },
+      })),
+      success_url: `${env.siteUrl}/checkout/order-received/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${env.siteUrl}/checkout/`,
+    });
+    if (result.ok) return Response.json({ url: result.url });
+    if (result.definite) {
+      // Stripe refused the request, so no session exists: free the stock.
+      await db.rpc("release_shop_checkout", { checkout_id: id });
+      reserved = null;
+      throw new Error("Payment could not be started. Please try again.");
+    }
+    // Unknown whether Stripe created the session: keep the stock reserved;
+    // the reconciler expires the session and releases it.
+    return Response.json(
       {
-        mode: "payment",
-        allowed_payment_method_types: ["card"],
-        customer_email: user?.email,
-        customer_creation: "always",
-        client_reference_id: id,
-        metadata: { checkout_id: id },
-        expires_at: Math.floor(Date.now() / 1000) + 1800,
-        billing_address_collection: "required",
-        phone_number_collection: { enabled: true },
-        shipping_address_collection: { allowed_countries: ["MT"] },
-        shipping_options: [
-          {
-            shipping_rate_data: {
-              display_name: shipping.label,
-              type: "fixed_amount",
-              fixed_amount: { amount: shipping.price_cents, currency: "eur" },
-            },
-          },
-        ],
-        line_items: lines.map((i) => ({
-          quantity: i.quantity,
-          price_data: {
-            currency: "eur",
-            unit_amount: i.unit_price_cents,
-            product_data: {
-              name: i.name,
-              description:
-                Object.values(i.option_values as Record<string, string>).join(
-                  " / ",
-                ) || undefined,
-            },
-          },
-        })),
-        success_url: `${env.siteUrl}/checkout/order-received/?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${env.siteUrl}/checkout/`,
+        error:
+          "The payment service didn’t respond. Please wait a minute and try again.",
       },
-      { idempotencyKey: id },
+      { status: 503 },
     );
-    return Response.json({ url: session.url });
   } catch (e) {
-    if (reserved && db && !stripeRequestStarted) {
+    // Only reached before the Stripe request, or after a definite refusal.
+    if (reserved && db) {
       const release = await db.rpc("release_shop_checkout", {
         checkout_id: reserved,
       });
