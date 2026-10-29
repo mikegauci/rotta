@@ -18,21 +18,25 @@ export type UploadedFile = {
 export async function recordUpload(file: UploadedFile) {
   const admin = await assertAdmin();
   const supabase = await createClient();
-  const { error } = await supabase.from("media").insert({
-    path: file.path,
-    file_name: file.fileName,
-    mime_type: file.mimeType,
-    size_bytes: file.sizeBytes,
-    width: file.width,
-    height: file.height,
-    uploaded_by: admin.id,
-  });
+  const { data, error } = await supabase
+    .from("media")
+    .insert({
+      path: file.path,
+      file_name: file.fileName,
+      mime_type: file.mimeType,
+      size_bytes: file.sizeBytes,
+      width: file.width,
+      height: file.height,
+      uploaded_by: admin.id,
+    })
+    .select("id")
+    .single();
   if (error) {
     await supabase.storage.from(MEDIA_BUCKET).remove([file.path]);
     return { error: error.message };
   }
   revalidatePath("/admin/media/");
-  return { ok: true };
+  return { id: data.id };
 }
 
 export async function updateAlt(id: string, alt: string) {

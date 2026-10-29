@@ -75,7 +75,7 @@ export function PostCard({
 
 export function PostGrid({ posts }: { posts: PostSummary[] }) {
   return (
-    <div className="-mx-2.5 grid desk:grid-cols-3 sm:grid-cols-2">
+    <div className="desk:grid-cols-3 -mx-2.5 grid sm:grid-cols-2">
       {posts.map((post, i) => (
         <PostCard key={post.slug} post={post} priority={i < 3} />
       ))}

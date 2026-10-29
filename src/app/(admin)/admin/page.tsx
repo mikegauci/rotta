@@ -6,12 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 export default async function AdminHome() {
   const user = await getCurrentUser();
   const supabase = await createClient();
-  const [users, media] = await Promise.all([
+  const [posts, users, media] = await Promise.all([
+    supabase.from("posts").select("*", { count: "exact", head: true }),
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("media").select("*", { count: "exact", head: true }),
   ]);
 
   const stats = [
+    { label: "Blog posts", value: posts.count ?? 0, href: "/admin/posts/" },
     { label: "Users", value: users.count ?? 0, href: "/admin/users/" },
     { label: "Media files", value: media.count ?? 0, href: "/admin/media/" },
   ];

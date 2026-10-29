@@ -74,6 +74,8 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Imported content: post/page HTML has block comments removed, uploads rewritten to Storage URLs and rotta.mt links made relative. The hero section at the top of each post/page is lifted out into `subtitle` + `hero_media_id`.
 - Public data: read through `publicDb` (`@/lib/supabase/public`, cookie-less, anonymous) inside `"use cache"` functions tagged by type (`posts`, `pages`...); admin saves call `revalidateTag`. Blog data lives in `@/lib/blog`. Pages that await `params` do it inside `<Suspense>`.
 - Blog URLs match WordPress: posts at `/<slug>/` (`(plain)/[slug]`), `/category/<slug>/`, `/tag/<slug>/`, `/author/<username>/`, each with `/page/N/` (10 per page). `PageHero` is the shared Spectra-style hero.
+- Rich text: `RichTextEditor` (`@/components/admin/rich-text-editor`) is Tiptap for new content. Imported HTML with WordPress layouts (divs, figures, classes) opens in HTML mode with a live preview, so Tiptap never flattens galleries or columns. Images come from `MediaPicker`/`MediaField` (`@/components/admin/media-picker`); browser uploads go through `uploadFiles()` in `@/lib/media-upload`.
+- Posts share the root URL space: `RESERVED_SLUGS` in `@/lib/slug` lists the first path segments taken by code routes. Renaming a published post's slug adds a 301 to `redirects`. Drafts can be previewed by admins at `/preview/<post id>/`.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
@@ -122,4 +124,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
 - [x] PR 4 Schema
 - [x] PR 5 Migration scripts (first import done 2026-10-29)
-- [ ] PR 7 Blog (public pages done; admin editor next)
+- [x] PR 7 Blog (public pages)
+- [ ] PR 7b Blog admin editor
