@@ -66,6 +66,10 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Forms with `useActionState`: React resets the form after an action, so return the submitted values in `fields` and pass them as `defaultValue`.
 - `trailingSlash: true` keeps WordPress-style URLs. Always write internal links with a trailing slash.
 - Email: `sendEmail()` from `@/lib/email/send` (server-only) sends through Resend with the shared Rotta layout (heading, paragraphs, label/value rows, button). Without `RESEND_API_KEY` it logs instead of sending. Sender domain `rotta.mt` is verified in Resend (records on `send.rotta.mt` and `resend._domainkey`). Supabase Auth emails go through Resend SMTP, configured in the Supabase dashboard. Don't add a strict DMARC policy: Google Workspace mail on the root domain has no SPF/DKIM.
+- Schema: every migrated table has a `wp_id` (WordPress/Formidable id) so imports can be re-run. Public content has `status` (`draft`/`published`) and an `seo` jsonb (`title`, `description`, `og_media_id`, `canonical`, `noindex`). Money is integer euro cents; prices include 18% VAT, and `orders.vat_cents` is the VAT inside the total. Shop config lives in `settings` (key `shop`).
+- Directory listings: one per owner (`businesses.owner_id` is unique). Owners can only update content columns (column grants); slug, status and owner change through `admin_update_business()`. Owners upload logos to `media/business/<user id>/`.
+- Orders are written only by the server (Stripe webhook with the secret key); customers can read their own orders.
+- Migration storage budget: stay under Supabase's 1 GB free storage. Import only files the DB references (no WP size variants or plugin backup folders), converted to WebP (q75, max 2000px).
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
@@ -106,9 +110,10 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 
 ## Status
 
-- [ ] Exports received
+- [x] Exports received (DB dump of live rotta.mt, uploads.zip, astra-child.zip; 2026-10-29)
 - [x] PR 1 Foundation
 - [x] PR 2 Design system and layout
 - [x] PR 3 Auth and roles
 - [x] PR 6 Admin CMS shell
-- [ ] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
+- [x] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
+- [ ] PR 4 Schema
