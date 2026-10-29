@@ -77,6 +77,7 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Rich text: `RichTextEditor` (`@/components/admin/rich-text-editor`) is Tiptap for new content. Imported HTML with WordPress layouts (divs, figures, classes) opens in HTML mode with a live preview, so Tiptap never flattens galleries or columns. Images come from `MediaPicker`/`MediaField` (`@/components/admin/media-picker`); browser uploads go through `uploadFiles()` in `@/lib/media-upload`.
 - Posts share the root URL space: `RESERVED_SLUGS` in `@/lib/slug` lists the first path segments taken by code routes. Renaming a published post's slug adds a 301 to `redirects`. Drafts can be previewed by admins at `/preview/<post id>/`.
 - Directory data lives in `@/lib/directory` (`getDirectory()` is cached under the `directory` tag; listing pages also use `business:<slug>`). URLs match WordPress: `/directory/`, `/directory/search-results/?vehicles=&era=&services=&region=` (term labels, matched by slug; `region=All` means no filter; `frm_search` is the keyword) and `/directory/<slug>/`. Design images for these pages are in `public/directory/`.
+- Listing writes: `cleanBusiness()` (`@/lib/business-input`) validates both forms; `insertListing()`/`replaceTerms()`/`refreshDirectory()` live in `@/lib/directory-write`. Owners save through `saveMyListing` (logos are shrunk to WebP in the browser and uploaded to `media/business/<uid>/`); admins through `adminSaveListing`, which renames via `admin_update_business()` and adds a 301 for the old address. New owner listings email `EMAIL_ADMIN_TO`.
 - `<GetInTouch />` (`@/components/get-in-touch`) emails `EMAIL_ADMIN_TO` through `sendContactMessage`.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
@@ -128,4 +129,4 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 5 Migration scripts (first import done 2026-10-29)
 - [x] PR 7 Blog (public pages)
 - [x] PR 7b Blog admin editor
-- [ ] PR 8 Directory (8a public pages; 8b My Business + admin next)
+- [ ] PR 8 Directory (8a public pages done; 8b My Business + admin in review)
