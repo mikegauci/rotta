@@ -193,3 +193,7 @@ Next steps, before pushing/opening PR:
 ### Shop merge scope
 
 Mike requested pushing/merging and moving to PR 12. The shop implementation is merged with checkout explicitly disabled unless `SHOP_CHECKOUT_ENABLED=true`; adding Stripe keys alone cannot activate payments. Keep this flag false until durable recovery/reconciliation, atomic admin saves, email retry hardening, remaining lifecycle tests, and full browser parity have passed. PR 11 remains unchecked because those acceptance items are outstanding. Continue PR 12 independently; do not enable payments or perform go-live work as part of it.
+
+## PR 12 in progress
+
+Branch `pr/12-homepage-static`. Started with a cached, anonymous published-page loader and replacing the privacy-policy placeholder with imported content and SEO. The source policy is preserved rather than rewritten. Remaining: inspect/render policy layout; rebuild homepage hero MP4 and feature sections against the live page (hide Marketplace and skip Instagram per decisions); build `/contact-us/` using the existing email action; check desktop/mobile and run lint/typecheck/build. Keep PR 12 unchecked until complete. Shop payments remain disabled pending the separate PR 11 acceptance work above.
