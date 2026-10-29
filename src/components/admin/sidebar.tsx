@@ -13,7 +13,7 @@ const sections: { title: string; items: Item[] }[] = [
       { label: "Dashboard", href: "/admin/", ready: true },
       { label: "Pages", href: "/admin/pages/", ready: false },
       { label: "Blog posts", href: "/admin/posts/", ready: true },
-      { label: "Directory", href: "/admin/directory/", ready: false },
+      { label: "Directory", href: "/admin/directory/", ready: true },
       { label: "Events", href: "/admin/events/", ready: false },
       { label: "Videos", href: "/admin/videos/", ready: false },
       { label: "Marketplace", href: "/admin/marketplace/", ready: false },
