@@ -4,7 +4,7 @@
 //   pnpm migrate            dry run: reads the export, converts images, prints a report
 //   pnpm migrate --apply    uploads media and writes everything to Supabase
 //
-// Needs NEXT_PUBLIC_SUPABASE_URL, and SUPABASE_SECRET_KEY for --apply (.env.local).
+// Needs NEXT_PUBLIC_SUPABASE_URL, and SUPABASE_SECRET_KEY for --apply (.env or .env.local).
 import {
   existsSync,
   mkdirSync,
@@ -175,22 +175,27 @@ async function main() {
       );
     const done = new Map((existing ?? []).map((r) => [r.id, r.size_bytes]));
     const toUpload = rows.filter((r) => done.get(r.id!) !== r.size_bytes);
-    await pool(toUpload, 6, async (row, i) => {
+    // Free-plan Storage rate-limits bursts, so upload two at a time and
+    // retry with backoff. Each file's media row is saved right after its
+    // upload, so an interrupted run resumes where it stopped.
+    await pool(toUpload, 2, async (row, i) => {
       const body = readFileSync(path.join(outDir, row.path));
-      const { error } = await db.storage.from(BUCKET).upload(row.path, body, {
-        contentType: row.mime_type,
-        cacheControl: "31536000",
-        upsert: true,
-      });
-      if (error) throw new Error(`upload ${row.path}: ${error.message}`);
+      for (let attempt = 1; ; attempt++) {
+        const { error } = await db.storage.from(BUCKET).upload(row.path, body, {
+          contentType: row.mime_type,
+          cacheControl: "31536000",
+          upsert: true,
+        });
+        const saved = error
+          ? { error }
+          : await db.from("media").upsert(row, { onConflict: "id" });
+        if (!saved.error) break;
+        if (attempt === 6)
+          throw new Error(`upload ${row.path}: ${saved.error.message}`);
+        await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
+      }
       if ((i + 1) % 100 === 0) console.log(`  ${i + 1}/${toUpload.length}`);
     });
-    for (let i = 0; i < rows.length; i += 200) {
-      const { error } = await db
-        .from("media")
-        .upsert(rows.slice(i, i + 200), { onConflict: "id" });
-      if (error) throw new Error(`media rows: ${error.message}`);
-    }
 
     console.log("Writing content…");
     for (const write of ctx.writes) {

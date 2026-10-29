@@ -10,7 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "migrate": "node --env-file=.env.local --disable-warning=ExperimentalWarning migration/import.ts"
+    "migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --disable-warning=ExperimentalWarning migration/import.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

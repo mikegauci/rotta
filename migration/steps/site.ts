@@ -1,4 +1,5 @@
 // Free-form pages, marketplace vehicles and redirects.
+import { extractHero } from "../lib/blocks.ts";
 import type { Context } from "../lib/context.ts";
 import { decodeEntities, wpDate } from "../lib/wp.ts";
 import { seoFrom } from "./blog.ts";
@@ -31,18 +32,22 @@ export function importSite(ctx: Context) {
     ...CODE_PAGES,
   );
   const meta = ctx.wp.postMeta(pages.map((p) => p.ID!));
-  const pageRows = pages.map((p) => ({
-    id: ctx.id("pages", p.ID!),
-    wp_id: Number(p.ID),
-    path: p.post_name === "home" ? "" : p.post_name!,
-    title: decodeEntities(p.post_title!),
-    content: CONTENT_PAGES.includes(p.post_name!)
-      ? ctx.html(p.post_content)
-      : "",
-    status: "published" as const,
-    seo: seoFrom(ctx, meta.get(p.ID!)),
-    created_at: wpDate(p.post_date_gmt, p.post_date) ?? undefined,
-  }));
+  const pageRows = pages.map((p) => {
+    const hero = extractHero(p.post_content);
+    return {
+      id: ctx.id("pages", p.ID!),
+      wp_id: Number(p.ID),
+      path: p.post_name === "home" ? "" : p.post_name!,
+      title: decodeEntities(p.post_title!),
+      content: CONTENT_PAGES.includes(p.post_name!) ? ctx.html(hero.rest) : "",
+      hero_media_id: hero.imageUrl
+        ? (ctx.media.byUrl(hero.imageUrl)?.id ?? null)
+        : null,
+      status: "published" as const,
+      seo: seoFrom(ctx, meta.get(p.ID!)),
+      created_at: wpDate(p.post_date_gmt, p.post_date) ?? undefined,
+    };
+  });
   ctx.upsert("pages", pageRows, "id");
   ctx.count("pages (content + SEO)", pageRows.length);
 

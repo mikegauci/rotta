@@ -1,5 +1,6 @@
 // Blog posts, categories and tags. Comments are skipped (all spam).
 import type { Json } from "../../src/lib/supabase/database.types.ts";
+import { extractHero } from "../lib/blocks.ts";
 import type { Context } from "../lib/context.ts";
 import { decodeEntities, wpDate } from "../lib/wp.ts";
 
@@ -52,6 +53,7 @@ export function importBlog(ctx: Context, users: Map<string, string>) {
   const rows = posts.map((p) => {
     const id = ctx.id("posts", p.ID!);
     const m = meta.get(p.ID!);
+    const hero = extractHero(p.post_content);
     for (const t of ctx.wp.termsFor(p.ID!, "category")) {
       if (t.slug === "uncategorized") continue;
       const cid = ctx.id("post_categories", t.term_id!);
@@ -80,7 +82,11 @@ export function importBlog(ctx: Context, users: Map<string, string>) {
       slug: p.post_name!,
       title: decodeEntities(p.post_title!),
       excerpt: decodeEntities(p.post_excerpt ?? ""),
-      content: ctx.html(p.post_content),
+      subtitle: hero.subtitle,
+      hero_media_id: hero.imageUrl
+        ? (ctx.media.byUrl(hero.imageUrl)?.id ?? null)
+        : null,
+      content: ctx.html(hero.rest),
       featured_media_id:
         ctx.media.byAttachment(m?.get("_thumbnail_id"))?.id ?? null,
       author_id: users.get(p.post_author!) ?? null,

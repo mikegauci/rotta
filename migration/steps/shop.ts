@@ -189,6 +189,11 @@ export function importShop(ctx: Context, users: Map<string, string>) {
   const variantIds = new Set(variantRows.map((v) => v.wp_id));
   const productWpIds = new Set(productRows.map((p) => p.wp_id));
 
+  const wpUserByEmail = new Map(
+    ctx.wp
+      .all("select ID, user_email from wp_users")
+      .map((u) => [u.user_email!.trim().toLowerCase(), u.ID!]),
+  );
   const orderRows = [];
   const itemRows = [];
   const noteRows = [];
@@ -283,6 +288,7 @@ export function importShop(ctx: Context, users: Map<string, string>) {
       });
     }
 
+    const email = (m.get("_billing_email") ?? "").trim().toLowerCase();
     const total = cents(m.get("_order_total")) ?? 0;
     if (status === "processing" || status === "completed") revenue += total;
     const paid = m.get("_date_paid");
@@ -290,8 +296,12 @@ export function importShop(ctx: Context, users: Map<string, string>) {
       id,
       wp_id: Number(o.ID),
       number: Number(o.ID),
-      customer_id: users.get(m.get("_customer_user") ?? "") ?? null,
-      email: (m.get("_billing_email") ?? "").trim().toLowerCase(),
+      // Guest checkouts are linked to the account with the same email, if any.
+      customer_id:
+        users.get(m.get("_customer_user") ?? "") ??
+        users.get(wpUserByEmail.get(email) ?? "") ??
+        null,
+      email,
       status,
       currency: m.get("_order_currency") || "EUR",
       subtotal_cents: subtotal,

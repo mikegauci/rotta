@@ -473,6 +473,7 @@ export type Database = {
       };
       pages: {
         Row: {
+          hero_media_id: string | null;
           content: string;
           created_at: string;
           id: string;
@@ -484,6 +485,7 @@ export type Database = {
           wp_id: number | null;
         };
         Insert: {
+          hero_media_id?: string | null;
           content?: string;
           created_at?: string;
           id?: string;
@@ -495,6 +497,7 @@ export type Database = {
           wp_id?: number | null;
         };
         Update: {
+          hero_media_id?: string | null;
           content?: string;
           created_at?: string;
           id?: string;
@@ -620,6 +623,8 @@ export type Database = {
       };
       posts: {
         Row: {
+          hero_media_id: string | null;
+          subtitle: string;
           author_id: string | null;
           content: string;
           created_at: string;
@@ -635,6 +640,8 @@ export type Database = {
           wp_id: number | null;
         };
         Insert: {
+          hero_media_id?: string | null;
+          subtitle?: string;
           author_id?: string | null;
           content?: string;
           created_at?: string;
@@ -650,6 +657,8 @@ export type Database = {
           wp_id?: number | null;
         };
         Update: {
+          hero_media_id?: string | null;
+          subtitle?: string;
           author_id?: string | null;
           content?: string;
           created_at?: string;

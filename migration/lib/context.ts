@@ -45,6 +45,14 @@ export class Context {
     onConflict: string,
   ) {
     if (!rows.length) return;
+    // Drop duplicates on the conflict key (Postgres rejects them in one statement).
+    const keys = onConflict.split(",");
+    const unique = new Map<string, (typeof rows)[number]>();
+    for (const row of rows) {
+      const r = row as Record<string, unknown>;
+      unique.set(keys.map((k) => String(r[k])).join("|"), row);
+    }
+    rows = [...unique.values()];
     this.writes.push({
       label: `${String(table)} (${rows.length})`,
       run: async (db) => {

@@ -70,6 +70,8 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Directory listings: one per owner (`businesses.owner_id` is unique). Owners can only update content columns (column grants); slug, status and owner change through `admin_update_business()`. Owners upload logos to `media/business/<user id>/`.
 - Orders are written only by the server (Stripe webhook with the secret key); customers can read their own orders.
 - Migration storage budget: stay under Supabase's 1 GB free storage. Import only files the DB references (no WP size variants or plugin backup folders), converted to WebP (q75, max 2000px).
+- Import: `pnpm migrate` (dry run, report in `migration/.cache/report.md`) and `pnpm migrate --apply` (needs `SUPABASE_SECRET_KEY` in `.env`/`.env.local`). Re-runnable: rows and media get stable ids from their WordPress ids, so it updates in place. After the final sync, run `select setval('public.order_number_seq', greatest((select max(number) from public.orders) + 1, 50000), false);` so new orders continue after the WooCommerce numbers.
+- Imported content: post/page HTML has block comments removed, uploads rewritten to Storage URLs and rotta.mt links made relative. The hero section at the top of each post/page is lifted out into `subtitle` + `hero_media_id`.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
@@ -116,4 +118,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 3 Auth and roles
 - [x] PR 6 Admin CMS shell
 - [x] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
-- [ ] PR 4 Schema
+- [x] PR 4 Schema
+- [x] PR 5 Migration scripts (first import done 2026-10-29)
