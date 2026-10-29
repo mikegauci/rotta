@@ -65,6 +65,7 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Media: files go to the public `media` Storage bucket (admin-only writes via RLS) with a row in `public.media`. Use `mediaUrl(path)` from `@/lib/media`.
 - Forms with `useActionState`: React resets the form after an action, so return the submitted values in `fields` and pass them as `defaultValue`.
 - `trailingSlash: true` keeps WordPress-style URLs. Always write internal links with a trailing slash.
+- Email: `sendEmail()` from `@/lib/email/send` (server-only) sends through Resend with the shared Rotta layout (heading, paragraphs, label/value rows, button). Without `RESEND_API_KEY` it logs instead of sending. Sender domain `rotta.mt` is verified in Resend (records on `send.rotta.mt` and `resend._domainkey`). Supabase Auth emails go through Resend SMTP, configured in the Supabase dashboard. Don't add a strict DMARC policy: Google Workspace mail on the root domain has no SPF/DKIM.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
@@ -109,4 +110,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 1 Foundation
 - [x] PR 2 Design system and layout
 - [x] PR 3 Auth and roles
-- [ ] PR 6 Admin CMS shell (in review)
+- [x] PR 6 Admin CMS shell
+- [ ] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
