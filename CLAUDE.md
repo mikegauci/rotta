@@ -132,7 +132,7 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 11 shop **code merged** as [#17](https://github.com/mikegauci/rotta/pull/17), but payment acceptance and hardening remain open. `SHOP_CHECKOUT_ENABLED=false` is the server-side gate; do not mark the shop production-ready.
 - [x] PR 12 Homepage and static pages merged as [#18](https://github.com/mikegauci/rotta/pull/18).
 - [x] PR 13 SEO and QA (see below)
-- [ ] Shop payment hardening and test-mode end-to-end acceptance, in a separate follow-up PR
+- [x] Shop payment hardening and test-mode acceptance (PR 15; see "Still open" below)
 - [ ] PR 14 Final sync and go-live, including Cloudflare DNS switch **only with Mike's explicit go-ahead**
 
 Start new work from a freshly fetched `origin/main` on a new `pr/NN-name` branch, then check `git status` and current PR state. Never commit `.env`, `.env.local`, `migration/exports/`, or secret values.
@@ -157,13 +157,24 @@ Local `.env` also stores `STRIPE_WEBHOOK_ENDPOINT_ID` and `STRIPE_WEBHOOK_URL` f
 
 The import reconciled helmet-stand variation attributes with saved live WooCommerce markup: original variants 47209 and 47210 both had an empty `attribute_choose-colour` wildcard and equal prices. Variant 47209 is retained; 47210 was removed only after checking there were no order-item references. UI and checkout preserve selected options in the cart identity and order snapshot. No invented colour-to-stitching mapping was used. Digital `buy-a-photo` is draft under the physical-only decision; the importer also drafts virtual/downloadable products. Three historical meal products are hidden from catalogue/related products while their original URLs remain available.
 
-**Payment work still required before enabling checkout:**
+**Payment hardening (PR 15, branch `pr/15-shop-payments`):**
 
-1. Make Stripe session creation recoverable after ambiguous timeouts using durable idempotency/session state, and reconcile or expire stock reservations after process crashes. Current behavior deliberately retains reserved stock once the Stripe request starts, but can leak reservations without recovery.
-2. Make admin product, variant and gallery writes atomic; preserve the order-note form value on errors; harden completion-email failure and retry handling.
-3. Add meaningful tests for concurrent/duplicate fulfillment, invalid webhook signatures, expiry/release, email retries and session recovery. Then test a full purchase, webhook, order, stock and email lifecycle using **test-mode** Stripe credentials. The configured key is live; do not use it to make test charges.
-4. Check desktop and mobile shop parity, simple/variable/out-of-stock products, fly-out/cart/checkout/admin, and remaining catalogue/grouped-product differences against live WooCommerce.
-5. Run `pnpm lint`, `pnpm typecheck`, `pnpm build` (stop dev before build), and deploy/check the follow-up PR. Enable `SHOP_CHECKOUT_ENABLED=true` only after all acceptance checks pass and Mike authorizes payment activation if approval is needed at that point. Do not touch DNS as part of shop work.
+- Lifecycle lives in `@/lib/checkout`: reserve stock → create the Stripe session (request stored, checkout id as idempotency key, one retry on ambiguous errors) → order on payment, or release. A definite Stripe refusal releases at once; an ambiguous failure keeps the stock and returns 503.
+- `reconcileCheckouts()` settles reservations past `expires_at` (35 min; sessions last 30): it finds the session even if its id was never saved (by listing sessions around the reservation time), fulfils it if paid, otherwise expires it in Stripe and releases the stock. It also retries unsent order emails for 7 days. It runs after every `/api/checkout/` request and daily via Vercel Cron (`vercel.json`, `/api/cron/checkouts/`, needs `CRON_SECRET`).
+- The webhook ignores events whose mode doesn't match the key (`event.livemode`), returns 500 only if the order can't be recorded, and never fails on email (the reconciler resends).
+- A payment that lands after its reservation was released is still recorded: stock is taken again (can go negative) and the order gets an admin note.
+- Test mode: `sk_test_` keys mark checkouts and orders `livemode=false`. Admin → Orders hides them (link "Test orders"), and test orders get "[TEST]" email subjects. "Delete test orders and restore their stock" calls `purge_test_shop_checkouts()`, which never touches live rows.
+- Admin product saves are one transaction (`admin_save_product()`), refusing to move another product's variants. The order-note form keeps its values when a save fails.
+- Tests: `supabase/tests/shop_checkout.sql` and `supabase/tests/admin_save_product.sql` (rollback-only). Local Stripe testing without the Stripe CLI: put a test key and any `whsec_…` value in `.env.local`, run `pnpm stripe:forward http://localhost:<port>` (polls Stripe test events and posts them signed), plus `scripts/stripe-replay.mts` (duplicate and bad-signature deliveries) and `scripts/stripe-scenarios.mts` (`start`, `expire`, `race`). All refuse live keys.
+- Verified end to end in Stripe test mode on 2026-10-29 (Mike's own test account, not Rotta's): successful card, declined card, 3-D Secure, duplicate webhooks (one order), bad signature (400), expiry releasing stock, lost session id and pre-Stripe crash recovered by the reconciler, a paid session whose webhook was lost recovered by the reconciler, two simultaneous checkouts for the same stock (one wins), and email retry. Its test orders (#50003, #50004), checkouts and test customer were deleted afterwards; stock is back to its original level.
+
+**Still open before enabling live payments:**
+
+1. Mike sets `CRON_SECRET` in Vercel (Production and Preview).
+2. Real email sending in test mode is unverified locally (no `RESEND_API_KEY` locally; emails were logged). Check once on a deployment.
+3. A Preview webhook needs the preview URL reachable by Stripe (Vercel deployment protection blocks it), so Preview checkout has no webhook; the reconciler still settles orders there.
+4. Catalogue: `mdina-grand-prix` has a stock-managed parent at 0 (out of stock) while one variant has 2 in stock, so it can't be bought; check against live WooCommerce.
+5. After go-live, live payments need Mike's approval: set `SHOP_CHECKOUT_ENABLED=true` in Production only then. Optional final check: one small real purchase by Mike, refunded through the API.
 
 ### PR 12: merged state
 

@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "stripe:forward": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --disable-warning=ExperimentalWarning scripts/stripe-forward.mts",
     "migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --disable-warning=ExperimentalWarning migration/import.ts"
   },
   "dependencies": {

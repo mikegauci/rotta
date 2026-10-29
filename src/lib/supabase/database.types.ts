@@ -19,12 +19,19 @@ export type Database = {
         Row: {
           id: string;
           customer_id: string | null;
+          expires_at: string | null;
           items: Json;
+          last_error: string;
+          livemode: boolean;
           shipping_cents: number;
           shipping_method: string;
           vat_rate: number;
           total_cents: number;
+          updated_at: string;
           state: string;
+          stripe_request: Json | null;
+          stripe_session_id: string | null;
+          stripe_session_url: string | null;
           order_id: string | null;
           customer_email_sent: boolean;
           admin_email_sent: boolean;
@@ -33,19 +40,33 @@ export type Database = {
         Insert: {
           id: string;
           customer_id?: string | null;
+          expires_at?: string | null;
           items: Json;
+          last_error?: string;
+          livemode?: boolean;
           shipping_cents: number;
           shipping_method: string;
           vat_rate: number;
           total_cents: number;
+          updated_at?: string;
           state?: string;
+          stripe_request?: Json | null;
+          stripe_session_id?: string | null;
+          stripe_session_url?: string | null;
           order_id?: string | null;
           customer_email_sent?: boolean;
           admin_email_sent?: boolean;
           created_at?: string;
         };
         Update: {
+          expires_at?: string | null;
+          last_error?: string;
+          livemode?: boolean;
+          updated_at?: string;
           state?: string;
+          stripe_request?: Json | null;
+          stripe_session_id?: string | null;
+          stripe_session_url?: string | null;
           order_id?: string | null;
           customer_email_sent?: boolean;
           admin_email_sent?: boolean;
@@ -435,6 +456,7 @@ export type Database = {
           discount_cents: number;
           email: string;
           id: string;
+          livemode: boolean;
           number: number;
           paid_at: string | null;
           payment_method: string;
@@ -459,6 +481,7 @@ export type Database = {
           discount_cents?: number;
           email: string;
           id?: string;
+          livemode?: boolean;
           number?: number;
           paid_at?: string | null;
           payment_method?: string;
@@ -483,6 +506,7 @@ export type Database = {
           discount_cents?: number;
           email?: string;
           id?: string;
+          livemode?: boolean;
           number?: number;
           paid_at?: string | null;
           payment_method?: string;
@@ -1343,17 +1367,28 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_save_product: {
+        Args: {
+          gallery: string[];
+          product: Json;
+          target_id: string;
+          variants: Json;
+        };
+        Returns: string;
+      };
       reserve_shop_checkout: {
         Args: {
           checkout_id: string;
           customer: string | null;
           lines: Json;
+          live: boolean;
           shipping: number;
           shipping_label: string;
           vat: number;
         };
         Returns: string;
       };
+      purge_test_shop_checkouts: { Args: never; Returns: number };
       release_shop_checkout: {
         Args: { checkout_id: string };
         Returns: undefined;

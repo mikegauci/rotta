@@ -106,84 +106,21 @@ export async function saveProduct(
         .data
     : null;
   if (id && !previous) return { error: "Product not found." };
-  // Check new products too: upsert must never reparent an existing variant.
-  for (const v of variants) {
-    const other = await db
-      .from("product_variants")
-      .select("product_id")
-      .eq("id", v.id)
-      .maybeSingle();
-    if (other.error) return { error: "Could not validate variant ownership." };
-    if (other.data && other.data.product_id !== id)
-      return { error: "Invalid variant." };
-  }
-  const saved = id
-    ? await db
-        .from("products")
-        .update({
-          ...row,
-          slug,
-          name: row.name.trim(),
-          options: row.options as Json,
-        })
-        .eq("id", id)
-        .select("id")
-        .single()
-    : await db
-        .from("products")
-        .insert({
-          ...row,
-          slug,
-          name: row.name.trim(),
-          options: row.options as Json,
-        })
-        .select("id")
-        .single();
-  if (saved.error) return { error: saved.error.message };
-  const productId = saved.data.id;
-  if (variants.length) {
-    const result = await db.from("product_variants").upsert(
-      variants.map((v, i) => ({
-        ...v,
-        product_id: productId,
-        sort_order: i,
-      })),
-    );
-    if (result.error) return { error: result.error.message };
-  }
-  const existing = await db
-    .from("product_variants")
-    .select("id")
-    .eq("product_id", productId);
-  if (existing.error) return { error: existing.error.message };
-  const removed = (existing.data ?? []).filter(
-    (v) => !variants.some((n) => n.id === v.id),
-  );
-  if (removed.length) {
-    const r = await db
-      .from("product_variants")
-      .delete()
-      .in(
-        "id",
-        removed.map((v) => v.id),
-      );
-    if (r.error) return { error: r.error.message };
-  }
-  const cleared = await db
-    .from("product_media")
-    .delete()
-    .eq("product_id", productId);
-  if (cleared.error) return { error: cleared.error.message };
-  if (gallery.length) {
-    const result = await db.from("product_media").insert(
-      [...new Set(gallery)].map((media_id, sort_order) => ({
-        product_id: productId,
-        media_id,
-        sort_order,
-      })),
-    );
-    if (result.error) return { error: result.error.message };
-  }
+  // Product, variants and gallery are written in one transaction.
+  const saved = await db.rpc("admin_save_product", {
+    target_id: id as string,
+    product: { ...row, slug, name: row.name.trim() } as unknown as Json,
+    variants: variants.map((v, i) => ({ ...v, sort_order: i })) as Json,
+    gallery: [...new Set(gallery)],
+  });
+  if (saved.error)
+    return {
+      error:
+        saved.error.code === "23505"
+          ? "Another product already uses that URL, SKU or option combination."
+          : saved.error.message,
+    };
+  const productId = saved.data;
   if (previous && previous.slug !== slug && previous.status === "published") {
     const r = await db.from("redirects").upsert(
       {

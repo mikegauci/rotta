@@ -1,20 +1,31 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPageHeader } from "@/components/admin/page-header";
+import { PurgeTestOrders } from "@/components/admin/purge-test-orders";
 import { formatPrice, formatPostDate } from "@/lib/format";
 import { Constants, type Enums } from "@/lib/supabase/database.types";
 export const metadata = { title: "Orders" };
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; q?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    page?: string;
+    q?: string;
+    test?: string;
+  }>;
 }) {
   const filters = await searchParams;
   const page = Math.max(1, Number(filters.page) || 1);
+  // Stripe test-mode orders are hidden unless asked for.
+  const test = filters.test === "1";
   const db = await createClient();
   let query = db
     .from("orders")
-    .select("id,number,email,status,total_cents,created_at", { count: "exact" })
+    .select("id,number,email,status,total_cents,created_at,livemode", {
+      count: "exact",
+    })
+    .eq("livemode", !test)
     .order("created_at", { ascending: false })
     .range((page - 1) * 50, page * 50 - 1);
   if (
@@ -27,10 +38,26 @@ export default async function Page({
   const { data, error, count } = await query;
   if (error) throw error;
   const href = (n: number) =>
-    `/admin/orders/?${new URLSearchParams({ page: String(n), ...(filters.status ? { status: filters.status } : {}), ...(filters.q ? { q: filters.q } : {}) })}`;
+    `/admin/orders/?${new URLSearchParams({ page: String(n), ...(filters.status ? { status: filters.status } : {}), ...(filters.q ? { q: filters.q } : {}), ...(test ? { test: "1" } : {}) })}`;
   return (
     <>
-      <AdminPageHeader title="Orders" />
+      <AdminPageHeader
+        title={test ? "Test orders" : "Orders"}
+        description={
+          test
+            ? "Orders paid in Stripe test mode. They never appear with real orders."
+            : undefined
+        }
+        actions={
+          <Link
+            href={test ? "/admin/orders/" : "/admin/orders/?test=1"}
+            className="text-sm hover:underline"
+          >
+            {test ? "← Real orders" : "Test orders"}
+          </Link>
+        }
+      />
+      {test && <PurgeTestOrders />}
       <form className="mb-5 flex flex-wrap gap-3">
         <input
           name="q"
@@ -48,6 +75,7 @@ export default async function Page({
             <option key={s}>{s}</option>
           ))}
         </select>
+        {test && <input type="hidden" name="test" value="1" />}
         <button className="shop-button">Filter</button>
       </form>
       <div className="overflow-auto rounded bg-white p-5">
