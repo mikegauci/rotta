@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { signOut } from "@/lib/auth/actions";
@@ -65,6 +66,8 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
 }
 
 async function AdminOnly({ children }: { children: React.ReactNode }) {
+  // The auth client reads the clock, so mark this as request-time first.
+  await connection();
   await requireRole(["admin"], "/admin/");
   return children;
 }
