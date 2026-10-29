@@ -147,3 +147,29 @@ Open to-dos:
 - Test My Business (`/my-business/`) with a business owner account, including a logo upload.
 - Rotate the legacy Supabase secret key (the `eyJ` one) for a new-style secret key, then update `.env` and Vercel.
 - If spam events appear, add Cloudflare Turnstile to the Add Event form.
+
+## PR 11 handoff (in progress, 2026-10-29)
+
+Work is on `pr/11-shop`. **PR 11 is not complete; do not tick it yet.** This is a local checkpoint, not a published PR. Continue in this checkout; do not discard these changes.
+
+Implemented first pass:
+
+- Public shop, `/shop/page/N/`, `/product/<slug>/`, variation selectors, image galleries, related products.
+- Persistent fly-out cart, cart/checkout pages, server-validated hosted Stripe Checkout.
+- Server-only stock reservation/expiry and atomic idempotent order fulfillment SQL in `supabase/migrations/20261029001200_shop_checkout.sql`.
+- Signed Stripe webhook, customer profile creation, order/admin emails with Resend idempotency keys, payment receipt page.
+- Products/variants/media/SEO editor and orders list/detail/status/notes admin; sidebar enabled.
+- `.env.example` documents `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. Mike supplies values; never read/print/request them. Hosted redirect needs no publishable Stripe key.
+- Stripe SDK 23.0.1 uses `allowed_payment_method_types: ["card"]` (the older create-session `payment_method_types` parameter was removed). No PayPal.
+
+Verification so far: `pnpm lint`, `pnpm typecheck`, `git diff --check` pass. Live shop and tee product were inspected in the browser. Local browser navigation timed out; **visual parity and checkout have not been verified**. An existing dev process serves this repo on port 3000. No production build or payment test has run.
+
+Next steps, before pushing/opening PR:
+
+1. Refresh Supabase tools. Old chat exposed only supabase6 (Annafatale) and Primary (pantrila/tally-hawk); neither exposed Rotta. Mike says the new connection is **supabase7**. Discover it and verify project `wdctbixfjvwbvqlylpuf` before applying anything. The new checkout migration has **NOT** been applied. Apply via connector, verify RPC access (service role only), run security advisors, regenerate types if useful.
+2. Review/harden checkout lifecycle before production: a Stripe request timeout can be ambiguous (session may exist even when create throws); current catch releases the reservation too eagerly. Persist/recover the session using its idempotency key, and ensure reservations never leak after a process crash. Add meaningful tests for duplicate/concurrent fulfillment, expiry/release, insufficient stock, server-side prices, VAT rounding, non-MT addresses, invalid signatures, and email retries. Test keys/webhook setup remain Mike's responsibility.
+3. Resolve imported catalogue differences against live site: DB has 18 published products, including three historical meal/event products absent from live shop; inspect catalogue visibility/grouped products. `buy-a-photo` is digital on live site but the product decision says physical products only; ensure it cannot be sold as a physical item. Do not silently ignore this decision.
+4. Helmet stand options are `Choose Colour: Walnut (Steel Rod) | Oak (Black Rod)`, but imported variant values still use `choose-stitching-colour: Dark Brown/Light Brown`. Live WooCommerce variation attributes are empty wildcards; do not assume variant mapping without checking. A guessed SQL mapping was deliberately removed; correct importer/data and preserve selected options in order snapshots. Existing `/tmp/rotta-stand.html` has live markup if still available.
+5. Browser-check desktop/mobile shop, simple/variable/out-of-stock products, fly-out/cart/checkout/admin against live. Shop banner image is imported at `wp/2021/05/shop-banner-image.webp`; logo was missing from media, so original public artwork is in `public/shop/shop-logo.png`. Check hero/header parity (repo conventions currently put shop under plain layout).
+6. Harden admin saves: products/variants/gallery currently save sequentially, so validate/commit atomically if needed; prevent variant IDs from moving between products, including the new-product path. Preserve form values for order-note errors. Completion email failure/retry needs review. Check SEO fields against existing CMS conventions.
+7. Run lint/typecheck again, production build (stop dev first), then push and create the single PR with squash auto-merge; attach it. Only tick PR 11 after completion. Never touch DNS or PR 14, or commit `migration/exports/`.

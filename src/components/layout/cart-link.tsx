@@ -1,17 +1,18 @@
-import Link from "next/link";
+"use client";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { formatPrice } from "@/lib/format";
-
-// The subtotal is wired to the real cart in the Shop PR.
-export function CartLink({ subtotalCents = 0 }: { subtotalCents?: number }) {
+import { useCart } from "@/components/shop/cart";
+export function CartLink() {
+  const { items, open } = useCart();
+  const subtotal = items.reduce((n, i) => n + i.price * i.quantity, 0);
   return (
-    <Link
-      href="/cart/"
-      className="text-brand hover:text-brand inline-flex items-center gap-1.5 text-base"
-      aria-label={`Cart, subtotal ${formatPrice(subtotalCents)}`}
+    <button
+      onClick={open}
+      className="text-brand inline-flex items-center gap-1.5 text-base"
+      aria-label={`Cart, subtotal ${formatPrice(subtotal)}`}
     >
       <HiOutlineShoppingBag className="size-[1.1em]" aria-hidden />
-      <span>{formatPrice(subtotalCents)}</span>
-    </Link>
+      <span>{formatPrice(subtotal)}</span>
+    </button>
   );
 }

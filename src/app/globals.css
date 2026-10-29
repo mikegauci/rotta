@@ -149,3 +149,12 @@
     @apply text-[#bd081c];
   }
 }
+
+@layer components {
+  .shop-button {
+    @apply bg-brand text-ink hover:bg-ink hover:text-brand inline-block rounded-[5px] px-7 py-3 font-bold uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-40;
+  }
+}
+.shop-drawer[open] {
+  display: block;
+}

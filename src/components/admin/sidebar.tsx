@@ -22,8 +22,8 @@ const sections: { title: string; items: Item[] }[] = [
   {
     title: "Shop",
     items: [
-      { label: "Products", href: "/admin/products/", ready: false },
-      { label: "Orders", href: "/admin/orders/", ready: false },
+      { label: "Products", href: "/admin/products/", ready: true },
+      { label: "Orders", href: "/admin/orders/", ready: true },
     ],
   },
   {
