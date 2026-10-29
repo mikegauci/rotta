@@ -136,3 +136,14 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 8 Directory (8a public pages, 8b My Business + admin)
 - [x] PR 9 Events
 - [x] PR 10 Watch and Marketplace
+- [ ] PR 11 Shop
+- [ ] PR 12 Homepage and static pages
+- [ ] PR 13 SEO and QA
+- [ ] PR 14 Go-live (only after Mike's go-ahead)
+
+Open to-dos:
+
+- Stripe keys: Mike adds them himself (Vercel env and `.env`); never ask for or handle key values.
+- Test My Business (`/my-business/`) with a business owner account, including a logo upload.
+- Rotate the legacy Supabase secret key (the `eyJ` one) for a new-style secret key, then update `.env` and Vercel.
+- If spam events appear, add Cloudflare Turnstile to the Add Event form.
