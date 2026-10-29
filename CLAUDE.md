@@ -45,7 +45,7 @@ Drop these junk pages: `/test/`, `/test34rt/`, `/slide-anything-popup-preview/`.
 
 ```bash
 pnpm dev           # local dev server
-pnpm build         # production build
+pnpm build         # production build (stop `pnpm dev` first: both write to .next)
 pnpm lint          # eslint
 pnpm typecheck     # next typegen + tsc
 pnpm format        # prettier (with Tailwind class sorting)
@@ -59,6 +59,9 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Route groups pick the header: `src/app/(hero)/` = transparent header over a hero (home, directory, directory search, watch, marketplace, contact, my-business, login); `src/app/(plain)/` = solid white header (events, shop, cart, checkout, posts, directory detail, legal). Both use `SiteShell`.
 - Design tokens live in `src/app/globals.css` (`brand` #f1be58, `ink` #191919, `body` #3a3a3a...). Use them instead of raw hex values. Desktop menu breakpoint is 922px (Astra's).
 - `<NewsletterSignup />` is opt-in per page (home, directory, directory detail, watch, blog, contact).
+- Auth: `getCurrentUser()` / `requireUser()` / `requireRole()` in `@/lib/auth/session` (server-only). Anything that reads the session must sit inside `<Suspense>`, and routes that gate on it set `export const instant = false`. Form actions are in `@/lib/auth/actions`.
+- Roles are in `profiles.role` (`admin`, `business_owner`, `customer`). Users can never change their own role; only `public.set_user_role()` (admin-checked) can. Registration creates `business_owner` accounts; shop checkout will create `customer` accounts.
+- `trailingSlash: true` keeps WordPress-style URLs. Always write internal links with a trailing slash.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
@@ -101,4 +104,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 
 - [ ] Exports received
 - [x] PR 1 Foundation
-- [ ] PR 2 Design system and layout (in review)
+- [x] PR 2 Design system and layout
+- [ ] PR 3 Auth and roles (in review)
