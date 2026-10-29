@@ -1,3 +1,5 @@
+import { getPageFields } from "@/lib/static-pages";
+import { ManagedPageContent } from "@/components/managed-page-content";
 import { PostGrid } from "@/components/blog/post-card";
 import { Container } from "@/components/layout/container";
 import { NewsletterSignup } from "@/components/newsletter-signup";
@@ -10,17 +12,22 @@ export function generateMetadata() {
 }
 
 export default async function BlogPage() {
+  const fields = await getPageFields("blog");
   const [hero, posts] = await Promise.all([
     getPageHero("blog"),
     getPostSummaries(),
   ]);
   return (
     <>
-      <PageHero
-        image={hero}
-        title="Check out our blog"
-        subtitle="Read what we have to say on the local automotive scene."
-      />
+      <ManagedPageContent path="blog">
+        <PageHero
+          image={hero}
+          title={<span className="whitespace-pre-line">{fields.heading}</span>}
+          subtitle={
+            <span className="whitespace-pre-line">{fields.description}</span>
+          }
+        />
+      </ManagedPageContent>
       <Container className="py-[50px]">
         <PostGrid posts={posts} />
       </Container>

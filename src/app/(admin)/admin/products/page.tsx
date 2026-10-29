@@ -1,3 +1,4 @@
+import { AdminThumbnail } from "@/components/admin/thumbnail";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -7,7 +8,9 @@ export default async function Page() {
   const db = await createClient();
   const { data, error } = await db
     .from("products")
-    .select("id,name,status,price_cents,stock_status")
+    .select(
+      "id,name,status,price_cents,stock_status,thumbnail:media!products_featured_media_id_fkey(path,alt)",
+    )
     .order("name");
   if (error) throw error;
   return (
@@ -24,6 +27,9 @@ export default async function Page() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr>
+              <th className="w-20 px-4 py-3">
+                <span className="sr-only">Thumbnail</span>
+              </th>
               {["Product", "Status", "Price", "Stock"].map((v) => (
                 <th key={v} className="p-3">
                   {v}
@@ -34,6 +40,9 @@ export default async function Page() {
           <tbody>
             {data.map((p) => (
               <tr key={p.id} className="border-t border-black/10">
+                <td className="px-4 py-3">
+                  <AdminThumbnail image={p.thumbnail} />
+                </td>
                 <td className="p-3">
                   <Link
                     className="font-semibold underline"

@@ -196,3 +196,9 @@ Remaining gaps:
 **PR 14 checklist addition:** set `NEXT_PUBLIC_SITE_URL=https://rotta.mt` in Vercel production before the DNS switch, or robots stays `Disallow: /`, canonicals point at the alias and GA4 stays off.
 
 Other open to-dos: rotate the legacy Supabase `eyJ` secret for a new-style secret and update local/Vercel env safely; add Cloudflare Turnstile to Add Event only if spam appears. Newsletter is last priority. PR 14 requires final migration sync and explicit DNS approval from Mike; rotta.mt currently remains on WordPress.
+
+### Admin improvements (follow-up to PR 13)
+
+Branch `pr/16-admin-improvements` adds shop sales metrics (7/30/90 days, EUR processing/completed orders by order date in Europe/Malta), a navigable dashboard events calendar, list thumbnails, and media file-type/date/sort filters. Sales reads paginate through every matching order; failed queries show an error rather than incomplete totals. Analytics regression checks: `node --test tests/admin-analytics.test.mjs`.
+
+`/admin/pages/` edits existing pages and creates standalone pages. Known page copy is stored in the existing `pages.seo.content_fields` JSON; defaults preserve the original markup. `pages.seo.managed_content` explicitly enables rich-text replacement for designated editorial areas, with forms/catalogues/calendars retained. Account and checkout pages expose SEO only. Standalone pages support draft/published status, image, HTML, SEO and an admin-only saved-content preview; root URLs are checked against posts and reserved routes. Existing paths remain fixed. Saves invalidate the pages cache and affected route; published standalone pages join the sitemap. No schema migration is needed. A signed-in admin browser pass is still required before merging.

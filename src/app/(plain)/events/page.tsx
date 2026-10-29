@@ -1,3 +1,5 @@
+import { getPageFields } from "@/lib/static-pages";
+import { ManagedPageContent } from "@/components/managed-page-content";
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -35,6 +37,7 @@ function one(value: string | string[] | undefined) {
 async function EventsBody({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   await connection();
+  const fields = await getPageFields("events");
   const today = maltaToday();
   const events = await getEvents();
 
@@ -57,7 +60,7 @@ async function EventsBody({ searchParams }: { searchParams: Promise<Params> }) {
   return (
     <>
       <EventsCarousel events={upcoming} />
-      <h2 className={heading}>Calendar of Events</h2>
+      <h2 className={heading}>{fields.calendarHeading}</h2>
       <EventCalendar
         year={valid ? year : thisYear}
         month={valid ? month : thisMonth}
@@ -111,10 +114,12 @@ async function PreviousEvents() {
   );
 }
 
-export default function EventsPage(props: PageProps<"/events">) {
+export default async function EventsPage(props: PageProps<"/events">) {
+  const fields = await getPageFields("events");
   return (
     <Container className="pb-[80px]">
-      <h1 className={heading}>Upcoming Events</h1>
+      <ManagedPageContent path="events" />
+      <h1 className={heading}>{fields.heading}</h1>
       <Suspense fallback={<div className="min-h-[900px]" />}>
         <EventsBody searchParams={props.searchParams} />
       </Suspense>

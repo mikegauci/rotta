@@ -1,3 +1,4 @@
+import { AdminThumbnail } from "@/components/admin/thumbnail";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -24,7 +25,7 @@ export default async function PostsPage({
   let query = supabase
     .from("posts")
     .select(
-      "id, slug, title, status, published_at, updated_at, categories:post_categories(name)",
+      "id, slug, title, status, published_at, updated_at, categories:post_categories(name), thumbnail:media!posts_featured_media_id_fkey(path, alt)",
     )
     .order("published_at", { ascending: false, nullsFirst: true });
   if (status) query = query.eq("status", status);
@@ -83,6 +84,9 @@ export default async function PostsPage({
         <table className="w-full text-left text-sm">
           <thead className="text-muted border-b border-[#eee] text-xs uppercase">
             <tr>
+              <th className="w-20 px-4 py-3">
+                <span className="sr-only">Thumbnail</span>
+              </th>
               <th className="px-4 py-3 font-semibold">Title</th>
               <th className="px-4 py-3 font-semibold">Categories</th>
               <th className="px-4 py-3 font-semibold">Status</th>
@@ -95,6 +99,9 @@ export default async function PostsPage({
                 key={post.id}
                 className="border-b border-[#f3f3f3] last:border-0"
               >
+                <td className="px-4 py-3">
+                  <AdminThumbnail image={post.thumbnail} />
+                </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/posts/${post.id}/`}
@@ -125,7 +132,7 @@ export default async function PostsPage({
             ))}
             {posts?.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-muted px-4 py-8 text-center">
+                <td colSpan={5} className="text-muted px-4 py-8 text-center">
                   No posts found.
                 </td>
               </tr>

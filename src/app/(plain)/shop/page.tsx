@@ -1,3 +1,4 @@
+import { ManagedPageContent } from "@/components/managed-page-content";
 import { codePageMetadata } from "@/lib/seo";
 import { Catalogue } from "@/components/shop/catalogue";
 export function generateMetadata() {
@@ -6,5 +7,10 @@ export function generateMetadata() {
   });
 }
 export default function Shop() {
-  return <Catalogue />;
+  return (
+    <>
+      <ManagedPageContent path="shop" />
+      <Catalogue />
+    </>
+  );
 }

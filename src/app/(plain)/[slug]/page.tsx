@@ -1,3 +1,6 @@
+import { getPageImage, getStaticPage } from "@/lib/static-pages";
+import { StaticPageContent } from "@/components/managed-page-content";
+import type { Seo } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -17,7 +20,18 @@ export async function generateMetadata({
 }: PageProps<"/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post) return notFoundMetadata;
+  if (!post) {
+    const page = await getStaticPage(slug);
+    if (!page) return notFoundMetadata;
+    return pageMetadata({
+      name: page.title,
+      path: `/${page.path}/`,
+      seo: page.seo as Seo,
+      image: page.hero_media_id
+        ? (await getPageImage(page.hero_media_id))?.path
+        : null,
+    });
+  }
   const image = post.thumbnail ?? post.hero;
   return pageMetadata({
     name: post.title,
@@ -33,7 +47,11 @@ export async function generateMetadata({
 async function PostView({ params }: Pick<PageProps<"/[slug]">, "params">) {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post) notFound();
+  if (!post) {
+    const page = await getStaticPage(slug);
+    if (!page) notFound();
+    return <StaticPageContent page={page} />;
+  }
   const { previous, next } = await getAdjacentPosts(slug);
 
   return <PostArticle post={post} previous={previous} next={next} />;

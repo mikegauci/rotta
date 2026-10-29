@@ -1,3 +1,4 @@
+import { AdminThumbnail } from "@/components/admin/thumbnail";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -19,7 +20,7 @@ export default async function DirectoryAdminPage({
   let query = db
     .from("businesses")
     .select(
-      "id, slug, name, location, status, updated_at, owner:profiles(email)",
+      "id, slug, name, location, status, updated_at, owner:profiles(email), thumbnail:media!businesses_logo_media_id_fkey(path, alt)",
     )
     .order("name");
   if (search) query = query.ilike("name", `%${search}%`);
@@ -78,6 +79,9 @@ export default async function DirectoryAdminPage({
         <table className="w-full text-left text-sm">
           <thead className="text-muted border-b border-[#eee] text-xs uppercase">
             <tr>
+              <th className="w-20 px-4 py-3">
+                <span className="sr-only">Thumbnail</span>
+              </th>
               <th className="px-4 py-3 font-semibold">Business</th>
               <th className="px-4 py-3 font-semibold">Owner</th>
               <th className="px-4 py-3 font-semibold">Status</th>
@@ -90,6 +94,9 @@ export default async function DirectoryAdminPage({
                 key={b.id}
                 className="border-b border-[#f3f3f3] last:border-0"
               >
+                <td className="px-4 py-3">
+                  <AdminThumbnail image={b.thumbnail} />
+                </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/directory/${b.id}/`}
@@ -120,7 +127,7 @@ export default async function DirectoryAdminPage({
             ))}
             {listings?.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-muted px-4 py-8 text-center">
+                <td colSpan={5} className="text-muted px-4 py-8 text-center">
                   No listings found.
                 </td>
               </tr>

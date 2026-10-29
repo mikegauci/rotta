@@ -1,3 +1,4 @@
+import { ManagedPageContent } from "@/components/managed-page-content";
 import Image from "next/image";
 import { VehicleCard } from "@/components/marketplace/vehicle-card";
 import { getVehicles } from "@/lib/marketplace";
@@ -13,26 +14,28 @@ export default async function MarketplacePage() {
 
   return (
     <>
-      <section className="bg-ink relative overflow-hidden px-5 py-[100px] md:py-[180px]">
-        <Image
-          src="/directory/marketplace-hero-banner.webp"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black opacity-35" />
-        <h1 className="relative flex justify-center">
+      <ManagedPageContent path="marketplace">
+        <section className="bg-ink relative overflow-hidden px-5 py-[100px] md:py-[180px]">
           <Image
-            src="/marketplace/marketplace-logo.webp"
-            alt="Marketplace"
-            width={512}
-            height={221}
+            src="/directory/marketplace-hero-banner.webp"
+            alt=""
+            fill
             priority
+            sizes="100vw"
+            className="object-cover"
           />
-        </h1>
-      </section>
+          <div className="absolute inset-0 bg-black opacity-35" />
+          <h1 className="relative flex justify-center">
+            <Image
+              src="/marketplace/marketplace-logo.webp"
+              alt="Marketplace"
+              width={512}
+              height={221}
+              priority
+            />
+          </h1>
+        </section>
+      </ManagedPageContent>
 
       <section className="px-5 py-10">
         <div className="mx-auto grid max-w-[1240px] grid-cols-1 md:grid-cols-2">
