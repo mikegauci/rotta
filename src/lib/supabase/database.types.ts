@@ -473,6 +473,7 @@ export type Database = {
       };
       pages: {
         Row: {
+          hero_media_id: string | null;
           content: string;
           created_at: string;
           id: string;
@@ -484,6 +485,7 @@ export type Database = {
           wp_id: number | null;
         };
         Insert: {
+          hero_media_id?: string | null;
           content?: string;
           created_at?: string;
           id?: string;
@@ -495,6 +497,7 @@ export type Database = {
           wp_id?: number | null;
         };
         Update: {
+          hero_media_id?: string | null;
           content?: string;
           created_at?: string;
           id?: string;
@@ -620,6 +623,8 @@ export type Database = {
       };
       posts: {
         Row: {
+          hero_media_id: string | null;
+          subtitle: string;
           author_id: string | null;
           content: string;
           created_at: string;
@@ -635,6 +640,8 @@ export type Database = {
           wp_id: number | null;
         };
         Insert: {
+          hero_media_id?: string | null;
+          subtitle?: string;
           author_id?: string | null;
           content?: string;
           created_at?: string;
@@ -650,6 +657,8 @@ export type Database = {
           wp_id?: number | null;
         };
         Update: {
+          hero_media_id?: string | null;
+          subtitle?: string;
           author_id?: string | null;
           content?: string;
           created_at?: string;
@@ -1170,12 +1179,40 @@ export type Database = {
           },
         ];
       };
+      video_series: {
+        Row: {
+          created_at: string;
+          id: string;
+          slug: string;
+          sort_order: number;
+          title: string;
+          wp_id: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          slug: string;
+          sort_order?: number;
+          title: string;
+          wp_id?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          slug?: string;
+          sort_order?: number;
+          title?: string;
+          wp_id?: number | null;
+        };
+        Relationships: [];
+      };
       videos: {
         Row: {
           created_at: string;
           description: string;
           id: string;
           published_at: string | null;
+          series_id: string | null;
           sort_order: number;
           status: Database["public"]["Enums"]["publish_status"];
           title: string;
@@ -1187,6 +1224,7 @@ export type Database = {
           description?: string;
           id?: string;
           published_at?: string | null;
+          series_id?: string | null;
           sort_order?: number;
           status?: Database["public"]["Enums"]["publish_status"];
           title: string;
@@ -1198,13 +1236,22 @@ export type Database = {
           description?: string;
           id?: string;
           published_at?: string | null;
+          series_id?: string | null;
           sort_order?: number;
           status?: Database["public"]["Enums"]["publish_status"];
           title?: string;
           updated_at?: string;
           youtube_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "videos_series_id_fkey";
+            columns: ["series_id"];
+            isOneToOne: false;
+            referencedRelation: "video_series";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

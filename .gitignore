@@ -43,3 +43,6 @@ next-env.d.ts
 
 # migration inputs (DB dumps, uploads)
 /migration/exports/
+
+# migration cache and reports
+/migration/.cache/
