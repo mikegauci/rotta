@@ -149,6 +149,11 @@ async function EventView({
                 Back to Events page
               </Link>
             </p>
+            <p className="mt-6">
+              <Link href="/events/#add-event" className="text-brand">
+                Add a new event
+              </Link>
+            </p>
           </div>
           <div className="md:w-1/3 md:px-2.5">
             <Details event={event} />

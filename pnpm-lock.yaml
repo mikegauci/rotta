@@ -202,6 +202,9 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
+      sharp:
+        specifier: ^0.35.5
+        version: 0.35.5(@types/node@24.19.2)
     devDependencies:
       '@tailwindcss/turbopack':
         specifier: ^4
@@ -227,9 +230,6 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.8.1
         version: 0.8.1(prettier@3.9.10)
-      sharp:
-        specifier: ^0.35.5
-        version: 0.35.5(@types/node@24.19.2)
       tailwindcss:
         specifier: ^4
         version: 4.3.3

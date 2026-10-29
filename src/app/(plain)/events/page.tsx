@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { AddEvent } from "@/components/events/add-event";
 import { EventCalendar } from "@/components/events/event-calendar";
 import { EventsCarousel } from "@/components/events/events-carousel";
 import { Container } from "@/components/layout/container";
@@ -119,6 +120,7 @@ export default function EventsPage(props: PageProps<"/events">) {
       <Suspense fallback={<div className="min-h-[900px]" />}>
         <EventsBody searchParams={props.searchParams} />
       </Suspense>
+      <AddEvent />
       <PreviousEvents />
     </Container>
   );

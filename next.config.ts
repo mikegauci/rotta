@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     ],
   },
   partialPrefetching: true,
+  // Event posters are shrunk in the browser first; this is the safety cap.
+  experimental: { serverActions: { bodySizeLimit: "4mb" } },
   turbopack: {
     rules: {
       "*.css": {
