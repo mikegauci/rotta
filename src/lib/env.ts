@@ -4,6 +4,8 @@ function required(name: string, value: string | undefined): string {
 }
 
 export const env = {
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   // Falls back to the Vercel deployment URL on previews.
   siteUrl:
     process.env.NEXT_PUBLIC_SITE_URL ??

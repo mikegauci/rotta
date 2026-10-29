@@ -15,6 +15,43 @@ export type Database = {
   };
   public: {
     Tables: {
+      shop_checkouts: {
+        Row: {
+          id: string;
+          customer_id: string | null;
+          items: Json;
+          shipping_cents: number;
+          shipping_method: string;
+          vat_rate: number;
+          total_cents: number;
+          state: string;
+          order_id: string | null;
+          customer_email_sent: boolean;
+          admin_email_sent: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          customer_id?: string | null;
+          items: Json;
+          shipping_cents: number;
+          shipping_method: string;
+          vat_rate: number;
+          total_cents: number;
+          state?: string;
+          order_id?: string | null;
+          customer_email_sent?: boolean;
+          admin_email_sent?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          state?: string;
+          order_id?: string | null;
+          customer_email_sent?: boolean;
+          admin_email_sent?: boolean;
+        };
+        Relationships: [];
+      };
       business_terms: {
         Row: {
           business_id: string;
@@ -1306,6 +1343,34 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      reserve_shop_checkout: {
+        Args: {
+          checkout_id: string;
+          customer: string | null;
+          lines: Json;
+          shipping: number;
+          shipping_label: string;
+          vat: number;
+        };
+        Returns: string;
+      };
+      release_shop_checkout: {
+        Args: { checkout_id: string };
+        Returns: undefined;
+      };
+      complete_shop_checkout: {
+        Args: {
+          checkout_id: string;
+          session_id: string;
+          payment_intent: string | null;
+          email_address: string;
+          customer: string | null;
+          billing: Json;
+          shipping_address_input: Json;
+          paid_total: number;
+        };
+        Returns: string;
+      };
       post_authors: {
         Args: never;
         Returns: {

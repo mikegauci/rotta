@@ -17,6 +17,7 @@ export type SendEmailInput = EmailContent & {
   to: string | string[];
   subject: string;
   replyTo?: string;
+  idempotencyKey?: string;
 };
 
 export type SendEmailResult =
@@ -28,6 +29,7 @@ export async function sendEmail({
   to,
   subject,
   replyTo,
+  idempotencyKey,
   ...content
 }: SendEmailInput): Promise<SendEmailResult> {
   const { html, text } = renderLayout(content);
@@ -40,14 +42,17 @@ export async function sendEmail({
     return { ok: true, id: "dev-noop" };
   }
 
-  const { data, error } = await api.emails.send({
-    from: FROM,
-    to,
-    subject,
-    html,
-    text,
-    replyTo,
-  });
+  const { data, error } = await api.emails.send(
+    {
+      from: FROM,
+      to,
+      subject,
+      html,
+      text,
+      replyTo,
+    },
+    idempotencyKey ? { idempotencyKey } : undefined,
+  );
 
   if (error || !data) {
     console.error("[email] send failed", error);
