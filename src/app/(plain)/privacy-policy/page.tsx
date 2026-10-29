@@ -24,14 +24,28 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacyPolicy() {
   const page = await getStaticPage("privacy-policy");
   if (!page) notFound();
+  // The imported Termly document contains flat CSS rules for ul/ol. Keep its
+  // typography while preventing those rules from styling navigation/footer lists.
+  const content = page.content.replace(
+    /<style([^>]*)>([\s\S]*?)<\/style>/gi,
+    (_tag, attributes: string, css: string) =>
+      `<style${attributes}>${css.replace(
+        /(^|})\s*([^{}]+)\{/g,
+        (_rule, boundary: string, selectors: string) =>
+          `${boundary} ${selectors
+            .split(",")
+            .map((selector) => `.privacy-content ${selector.trim()}`)
+            .join(", ")} {`,
+      )}</style>`,
+  );
   return (
     <Container className="py-16">
       <h1 className="text-ink mb-8 text-[40px] leading-[1.3] font-black">
         {page.title}
       </h1>
       <div
-        className="post-content"
-        dangerouslySetInnerHTML={{ __html: page.content }}
+        className="post-content privacy-content"
+        dangerouslySetInnerHTML={{ __html: content }}
       />
     </Container>
   );

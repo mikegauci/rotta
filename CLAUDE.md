@@ -137,7 +137,7 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 9 Events
 - [x] PR 10 Watch and Marketplace
 - [ ] PR 11 Shop
-- [ ] PR 12 Homepage and static pages
+- [x] PR 12 Homepage and static pages
 - [ ] PR 13 SEO and QA
 - [ ] PR 14 Go-live (only after Mike's go-ahead)
 
@@ -194,6 +194,8 @@ Next steps, before pushing/opening PR:
 
 Mike requested pushing/merging and moving to PR 12. The shop implementation is merged with checkout explicitly disabled unless `SHOP_CHECKOUT_ENABLED=true`; adding Stripe keys alone cannot activate payments. Keep this flag false until durable recovery/reconciliation, atomic admin saves, email retry hardening, remaining lifecycle tests, and full browser parity have passed. PR 11 remains unchecked because those acceptance items are outstanding. Continue PR 12 independently; do not enable payments or perform go-live work as part of it.
 
-## PR 12 in progress
+## PR 12 Homepage and static pages
 
-Branch `pr/12-homepage-static`. Started with a cached, anonymous published-page loader and replacing the privacy-policy placeholder with imported content and SEO. The source policy is preserved rather than rewritten. Remaining: inspect/render policy layout; rebuild homepage hero MP4 and feature sections against the live page (hide Marketplace and skip Instagram per decisions); build `/contact-us/` using the existing email action; check desktop/mobile and run lint/typecheck/build. Keep PR 12 unchecked until complete. Shop payments remain disabled pending the separate PR 11 acceptance work above.
+Implemented on `pr/12-homepage-static` (PR #18): original homepage garage MP4, featured Super 90 video and Best in Show story, directory/shop/events panels, shared contact form on home and `/contact-us/`, published imported privacy content and SEO. Marketplace and Instagram omitted per decisions. Original missing homepage artwork/video is kept in `public/home/`; no new storage uploads or secrets.
+
+Verification: lint, typecheck, production build (469 pages), and diff checks passed. Compared live and local desktop layouts; checked 390px mobile home/contact without horizontal overflow, video playback and image loading, and empty-form validation without sending email. Scoped the imported policy's flat CSS rules to `.privacy-content` after detecting list-style leakage into navigation; verified every generated policy selector is scoped. The browser connection became unavailable during the final policy screenshot recheck, so that visual recheck remains for PR 13. Newsletter wiring remains deferred as originally planned. Stripe/payment activation stays skipped and disabled at Mike's request; no DNS or go-live work performed.
