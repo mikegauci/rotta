@@ -4,6 +4,9 @@
 @theme {
   --font-sans: var(--font-poppins), sans-serif;
 
+  /* Astra's desktop breakpoint (922px), in rem so it sorts after sm/md. */
+  --breakpoint-desk: 57.625rem;
+
   --color-brand: #f1be58; /* yellow: active links, buttons, cart */
   --color-ink: #191919; /* footer and dark sections */
   --color-body: #3a3a3a; /* body text */
@@ -32,17 +35,117 @@
   }
 }
 
-/* Typography for CMS content (posts, pages). Refined per template later. */
+/* Typography for CMS content (posts, pages). Mirrors the WordPress core and
+   Spectra block styles the imported HTML relies on. */
 @layer components {
   .prose-rotta h1 {
     @apply text-heading mb-1.5 text-[30px] capitalize;
   }
 
   .prose-rotta p {
-    @apply mb-6 text-[15px] leading-normal;
+    @apply mb-6 leading-normal;
+  }
+
+  .prose-rotta p:empty {
+    @apply hidden;
   }
 
   .prose-rotta a {
-    color: #3030f1;
+    @apply text-brand;
+  }
+
+  .prose-rotta h2,
+  .prose-rotta h3,
+  .prose-rotta h4 {
+    @apply text-heading mt-8 mb-4 font-semibold;
+  }
+  .prose-rotta h2 {
+    @apply text-[26px] leading-tight;
+  }
+  .prose-rotta h3 {
+    @apply text-[22px] leading-tight;
+  }
+
+  .prose-rotta ul,
+  .prose-rotta ol {
+    @apply mb-6 ml-6 list-outside;
+  }
+  .prose-rotta ul {
+    @apply list-disc;
+  }
+  .prose-rotta ol {
+    @apply list-decimal;
+  }
+
+  .prose-rotta img {
+    @apply h-auto max-w-full;
+  }
+
+  .prose-rotta figure {
+    @apply m-0;
+  }
+
+  .prose-rotta figcaption {
+    @apply text-muted mt-2 text-center text-sm;
+  }
+
+  .prose-rotta hr {
+    @apply mt-[7px] mb-[22px] border-0 border-t-2 border-[#808080];
+  }
+
+  /* Core columns: stack on mobile, side by side from 782px. */
+  .prose-rotta .wp-block-columns {
+    @apply my-[15px] flex flex-col gap-[29px] md:flex-row;
+  }
+  .prose-rotta .wp-block-column {
+    @apply min-w-0 grow basis-0;
+  }
+  .prose-rotta .is-vertically-aligned-center {
+    @apply self-center;
+  }
+
+  /* Core gallery (cropped, three per row on desktop). */
+  .prose-rotta .wp-block-gallery {
+    @apply mt-[29px] mb-6 flex flex-wrap gap-[29px];
+  }
+  .prose-rotta .wp-block-gallery > .wp-block-image {
+    @apply flex grow basis-full sm:basis-[calc(50%-15px)] lg:basis-[calc(33.333%-20px)];
+  }
+  .prose-rotta .wp-block-gallery.is-cropped .wp-block-image img {
+    @apply h-full w-full object-cover;
+  }
+  .prose-rotta .wp-block-image {
+    @apply mb-6;
+  }
+  .prose-rotta .wp-block-gallery .wp-block-image {
+    @apply mb-0;
+  }
+
+  .prose-rotta .wp-block-embed iframe,
+  .prose-rotta iframe {
+    @apply aspect-video h-auto w-full;
+  }
+
+  /* Spectra "Share this post" heading and icons. */
+  .prose-rotta .wp-block-uagb-advanced-heading h5 {
+    @apply text-heading m-0 text-lg font-bold;
+  }
+  .prose-rotta .uagb-social-share__wrap {
+    @apply flex items-end justify-start gap-3 md:justify-end;
+  }
+  .prose-rotta .uagb-ss__link {
+    @apply block text-[#4267b2];
+  }
+  .prose-rotta .uagb-ss__link svg {
+    @apply size-[35px] fill-current;
+  }
+  .prose-rotta .uagb-ss__wrapper:nth-child(2) .uagb-ss__link {
+    @apply text-[#1da1f2];
+  }
+  .prose-rotta .uagb-ss__wrapper:nth-child(3) .uagb-ss__link {
+    @apply text-[#0077b5];
+  }
+  .prose-rotta .uagb-ss__wrapper:nth-child(4) .uagb-ss__link {
+    @apply text-[#bd081c];
   }
 }

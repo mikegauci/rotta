@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Container } from "@/components/layout/container";
 import { CartLink } from "@/components/layout/cart-link";
 import { isActive, primaryNav } from "@/lib/navigation";
@@ -12,8 +12,27 @@ export type HeaderVariant = "transparent" | "solid";
 
 // Transparent: overlays the page hero with the light logo (home, directory, watch...).
 // Solid: white bar with the dark logo (events, shop, posts, legal pages...).
+// The URL is runtime data, so the prerendered shell shows the header without
+// an active link and the highlighted version streams in.
 export function Header({ variant }: { variant: HeaderVariant }) {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<HeaderView variant={variant} pathname={null} />}>
+      <HeaderWithPath variant={variant} />
+    </Suspense>
+  );
+}
+
+function HeaderWithPath({ variant }: { variant: HeaderVariant }) {
+  return <HeaderView variant={variant} pathname={usePathname()} />;
+}
+
+function HeaderView({
+  variant,
+  pathname,
+}: {
+  variant: HeaderVariant;
+  pathname: string | null;
+}) {
   // Remember which page the menu was opened on so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
@@ -37,7 +56,7 @@ export function Header({ variant }: { variant: HeaderVariant }) {
                 width={430}
                 height={278}
                 priority
-                className="h-auto w-[100px] min-[922px]:w-[85px]"
+                className="desk:w-[85px] h-auto w-[100px]"
               />
             ) : (
               <Image
@@ -53,11 +72,11 @@ export function Header({ variant }: { variant: HeaderVariant }) {
 
           <nav
             aria-label="Main"
-            className="ml-auto hidden items-center min-[922px]:flex"
+            className="desk:flex ml-auto hidden items-center"
           >
             <ul className="flex items-center">
               {primaryNav.map((item) => {
-                const active = isActive(pathname, item.href);
+                const active = pathname ? isActive(pathname, item.href) : false;
                 return (
                   <li key={item.href}>
                     <Link
@@ -78,13 +97,13 @@ export function Header({ variant }: { variant: HeaderVariant }) {
             </ul>
           </nav>
 
-          <div className="ml-auto px-4 leading-[48px] min-[922px]:ml-0 min-[922px]:leading-[64px]">
+          <div className="desk:ml-0 desk:leading-[64px] ml-auto px-4 leading-[48px]">
             <MyBusinessButton />
           </div>
 
           <button
             type="button"
-            className={`px-2.5 text-[20px] min-[922px]:hidden ${
+            className={`desk:hidden px-2.5 text-[20px] ${
               transparent ? "text-white" : "text-black"
             }`}
             aria-controls="mobile-menu"
@@ -101,11 +120,11 @@ export function Header({ variant }: { variant: HeaderVariant }) {
         <nav
           id="mobile-menu"
           aria-label="Main"
-          className="bg-[#f9f9f9] min-[922px]:hidden"
+          className="desk:hidden bg-[#f9f9f9]"
         >
           <ul>
             {primaryNav.map((item) => {
-              const active = isActive(pathname, item.href);
+              const active = pathname ? isActive(pathname, item.href) : false;
               return (
                 <li key={item.href}>
                   <Link

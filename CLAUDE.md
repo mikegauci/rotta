@@ -57,7 +57,7 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Supabase clients: `@/lib/supabase/server` (Server Components, Route Handlers, Server Actions), `@/lib/supabase/client` (Client Components). Env is read through `@/lib/env`.
 - DB changes are SQL files in `supabase/migrations/` (timestamped), applied with the Supabase connector. No Supabase CLI dependency.
 - Route groups pick the header: `src/app/(hero)/` = transparent header over a hero (home, directory, directory search, watch, marketplace, contact, my-business, login); `src/app/(plain)/` = solid white header (events, shop, cart, checkout, posts, directory detail, legal). Both use `SiteShell`.
-- Design tokens live in `src/app/globals.css` (`brand` #f1be58, `ink` #191919, `body` #3a3a3a...). Use them instead of raw hex values. Desktop menu breakpoint is 922px (Astra's).
+- Design tokens live in `src/app/globals.css` (`brand` #f1be58, `ink` #191919, `body` #3a3a3a...). Use them instead of raw hex values. Desktop breakpoint is 922px (Astra's): use the `desk:` variant, not `min-[922px]:` (arbitrary px variants sort before `sm`/`md`).
 - `<NewsletterSignup />` is opt-in per page (home, directory, directory detail, watch, blog, contact).
 - Auth: `getCurrentUser()` / `requireUser()` / `requireRole()` in `@/lib/auth/session` (server-only). Anything that reads the session must sit inside `<Suspense>`, and routes that gate on it set `export const instant = false`. Form actions are in `@/lib/auth/actions`.
 - Roles are in `profiles.role` (`admin`, `business_owner`, `customer`). Users can never change their own role; only `public.set_user_role()` (admin-checked) can. Registration creates `business_owner` accounts; shop checkout will create `customer` accounts.
@@ -72,6 +72,8 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Migration storage budget: stay under Supabase's 1 GB free storage. Import only files the DB references (no WP size variants or plugin backup folders), converted to WebP (q75, max 2000px).
 - Import: `pnpm migrate` (dry run, report in `migration/.cache/report.md`) and `pnpm migrate --apply` (needs `SUPABASE_SECRET_KEY` in `.env`/`.env.local`). Re-runnable: rows and media get stable ids from their WordPress ids, so it updates in place. After the final sync, run `select setval('public.order_number_seq', greatest((select max(number) from public.orders) + 1, 50000), false);` so new orders continue after the WooCommerce numbers.
 - Imported content: post/page HTML has block comments removed, uploads rewritten to Storage URLs and rotta.mt links made relative. The hero section at the top of each post/page is lifted out into `subtitle` + `hero_media_id`.
+- Public data: read through `publicDb` (`@/lib/supabase/public`, cookie-less, anonymous) inside `"use cache"` functions tagged by type (`posts`, `pages`...); admin saves call `revalidateTag`. Blog data lives in `@/lib/blog`. Pages that await `params` do it inside `<Suspense>`.
+- Blog URLs match WordPress: posts at `/<slug>/` (`(plain)/[slug]`), `/category/<slug>/`, `/tag/<slug>/`, `/author/<username>/`, each with `/page/N/` (10 per page). `PageHero` is the shared Spectra-style hero.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
@@ -120,3 +122,4 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
 - [x] PR 4 Schema
 - [x] PR 5 Migration scripts (first import done 2026-10-29)
+- [ ] PR 7 Blog (public pages done; admin editor next)
