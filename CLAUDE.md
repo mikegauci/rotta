@@ -166,7 +166,7 @@ The import reconciled helmet-stand variation attributes with saved live WooComme
 - Test mode: `sk_test_` keys mark checkouts and orders `livemode=false`. Admin → Orders hides them (link "Test orders"), and test orders get "[TEST]" email subjects. "Delete test orders and restore their stock" calls `purge_test_shop_checkouts()`, which never touches live rows.
 - Admin product saves are one transaction (`admin_save_product()`), refusing to move another product's variants. The order-note form keeps its values when a save fails.
 - Tests: `supabase/tests/shop_checkout.sql` and `supabase/tests/admin_save_product.sql` (rollback-only). Local Stripe testing without the Stripe CLI: put a test key and any `whsec_…` value in `.env.local`, run `pnpm stripe:forward http://localhost:<port>` (polls Stripe test events and posts them signed), plus `scripts/stripe-replay.mts` (duplicate and bad-signature deliveries) and `scripts/stripe-scenarios.mts` (`start`, `expire`, `race`). All refuse live keys.
-- Verified end to end in Stripe test mode on 2026-10-29 (Mike's own test account, not Rotta's): successful card, declined card, 3-D Secure, duplicate webhooks (one order), bad signature (400), expiry releasing stock, lost session id and pre-Stripe crash recovered by the reconciler, a paid session whose webhook was lost recovered by the reconciler, two simultaneous checkouts for the same stock (one wins), and email retry. Test orders #50003 and #50004 exist with test customer `rotta-checkout-test@example.com`.
+- Verified end to end in Stripe test mode on 2026-10-29 (Mike's own test account, not Rotta's): successful card, declined card, 3-D Secure, duplicate webhooks (one order), bad signature (400), expiry releasing stock, lost session id and pre-Stripe crash recovered by the reconciler, a paid session whose webhook was lost recovered by the reconciler, two simultaneous checkouts for the same stock (one wins), and email retry. Its test orders (#50003, #50004), checkouts and test customer were deleted afterwards; stock is back to its original level.
 
 **Still open before enabling live payments:**
 
@@ -175,7 +175,6 @@ The import reconciled helmet-stand variation attributes with saved live WooComme
 3. A Preview webhook needs the preview URL reachable by Stripe (Vercel deployment protection blocks it), so Preview checkout has no webhook; the reconciler still settles orders there.
 4. Catalogue: `mdina-grand-prix` has a stock-managed parent at 0 (out of stock) while one variant has 2 in stock, so it can't be bought; check against live WooCommerce.
 5. After go-live, live payments need Mike's approval: set `SHOP_CHECKOUT_ENABLED=true` in Production only then. Optional final check: one small real purchase by Mike, refunded through the API.
-6. Clean up test data with Mike's OK: purge test orders (admin button or `select purge_test_shop_checkouts()`), then delete the test customer account.
 
 ### PR 12: merged state
 
