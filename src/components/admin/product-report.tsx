@@ -17,6 +17,7 @@ export async function ProductReport({
       )
       .in("orders.status", ["processing", "completed"])
       .eq("orders.currency", "EUR")
+      .eq("orders.livemode", true)
       .order("id")
       .range(offset, offset + 999);
     if (from) query = query.gte("orders.created_at", from + "T00:00:00Z");

@@ -141,6 +141,7 @@ export default async function Tools({
       const { data, error } = await db
         .from("orders")
         .select("created_at,status,total_cents,currency")
+        .eq("livemode", true)
         .order("id")
         .range(offset, offset + 999);
       if (error) throw error;
@@ -192,7 +193,7 @@ export default async function Tools({
           {formatPrice(paid.length ? Math.round(total / paid.length) : 0)}
         </p>
         <p className="mb-4 text-sm">
-          EUR processing/completed orders by order date, including tax and
+          Live EUR processing/completed orders by order date, including tax and
           shipping. Refunded/cancelled orders excluded.
         </p>
         <table className="w-full text-left">

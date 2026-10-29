@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     let q = db
       .from("orders")
       .select("number,created_at,status,total_cents,currency")
+      .eq("livemode", true)
       .in("status", ["processing", "completed"])
       .eq("currency", "EUR")
       .order("id")

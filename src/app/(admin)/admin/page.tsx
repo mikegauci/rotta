@@ -47,6 +47,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     const result = await db
       .from("orders")
       .select("id,created_at,status,total_cents,currency")
+      .eq("livemode", true)
       .gte("created_at", `${since}T00:00:00Z`)
       .order("created_at")
       .order("id")
