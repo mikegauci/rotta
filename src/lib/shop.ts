@@ -40,3 +40,13 @@ export async function getShopSettings() {
     }[];
   };
 }
+
+// Historical meals remain available to the Events archive at their original URLs.
+export async function getCatalogueProducts() {
+  const hidden = new Set([
+    "bbq-evening-set-menu-at-omc-clubhouse",
+    "geared-up-fridays-american-style",
+    "geared-up-fridays-italian-style-set-menu",
+  ]);
+  return (await getProducts()).filter((p) => !hidden.has(p.slug));
+}

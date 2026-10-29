@@ -9,9 +9,18 @@ import { available, price, type Product } from "@/lib/shop-types";
 import type { Json } from "@/lib/supabase/database.types";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function POST(request: Request) {
+  // Enable only after recovery/reconciliation and payment acceptance checks.
+  if (process.env.SHOP_CHECKOUT_ENABLED !== "true")
+    return Response.json(
+      {
+        error: "Online payments are not available yet. Please try again later.",
+      },
+      { status: 503 },
+    );
   if (request.headers.get("origin") !== new URL(request.url).origin)
     return Response.json({ error: "Invalid request." }, { status: 403 });
   let reserved: string | null = null;
+  let stripeRequestStarted = false;
   const db = createAdminClient();
   try {
     const stripe = getStripe();
@@ -30,6 +39,7 @@ export async function POST(request: Request) {
       productId: string;
       variantId: string | null;
       quantity: number;
+      options?: Record<string, string>;
     }[];
     const seen = new Set<string>();
     for (const item of requested) {
@@ -41,7 +51,7 @@ export async function POST(request: Request) {
         item.quantity > 99
       )
         throw new Error("Invalid cart item.");
-      const key = item.variantId ?? item.productId;
+      const key = `${item.variantId ?? item.productId}:${JSON.stringify(Object.entries(item.options ?? {}).sort())}`;
       if (seen.has(key)) throw new Error("Duplicate cart item.");
       seen.add(key);
     }
@@ -67,6 +77,19 @@ export async function POST(request: Request) {
         (v ?? p).price_cents === null
       )
         throw new Error("A product is unavailable. Please check your cart.");
+      const definitions = p.options as { name: string; values: string[] }[];
+      const selected = i.options ?? {};
+      if (
+        definitions.some((o) => !o.values.includes(selected[o.name])) ||
+        Object.keys(selected).some(
+          (key) => !definitions.some((o) => o.name === key),
+        ) ||
+        (v &&
+          Object.entries(v.option_values as Record<string, string>).some(
+            ([key, value]) => value && selected[key] !== value,
+          ))
+      )
+        throw new Error("Choose a valid value for every product option.");
       return {
         product_id: p.id,
         variant_id: v?.id ?? null,
@@ -74,7 +97,7 @@ export async function POST(request: Request) {
         sku: v?.sku ?? p.sku,
         quantity: i.quantity,
         unit_price_cents: price(v ?? p),
-        option_values: v?.option_values ?? {},
+        option_values: selected,
       };
     });
     const settings = await getShopSettings();
@@ -96,6 +119,7 @@ export async function POST(request: Request) {
         "Stock or prices have changed. Please refresh your cart and try again.",
       );
     reserved = id;
+    stripeRequestStarted = true;
     const session = await stripe.checkout.sessions.create(
       {
         mode: "payment",
@@ -138,7 +162,7 @@ export async function POST(request: Request) {
     );
     return Response.json({ url: session.url });
   } catch (e) {
-    if (reserved && db) {
+    if (reserved && db && !stripeRequestStarted) {
       const release = await db.rpc("release_shop_checkout", {
         checkout_id: reserved,
       });

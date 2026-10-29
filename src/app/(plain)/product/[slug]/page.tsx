@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getProduct, getProducts } from "@/lib/shop";
+import { getProduct, getProducts, getCatalogueProducts } from "@/lib/shop";
 import { ProductDetail } from "@/components/shop/product-detail";
 import { ProductCard } from "@/components/shop/product-card";
 import { Container } from "@/components/layout/container";
@@ -34,7 +34,7 @@ async function Content({ params }: { params: Promise<{ slug: string }> }) {
         Related products
       </h2>
       <div className="grid gap-7 sm:grid-cols-3">
-        {(await getProducts())
+        {(await getCatalogueProducts())
           .filter((v) => v.id !== p.id)
           .slice(0, 3)
           .map((v) => (

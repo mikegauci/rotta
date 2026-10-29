@@ -13,11 +13,13 @@ export function ProductDetail({ product: p }: { product: Product }) {
   const options = p.options as { name: string; values: string[] }[];
   const complete = options.every((o) => selection[o.name]);
   const variant = complete
-    ? p.variants.find((v) =>
-        Object.entries(v.option_values as Record<string, string>).every(
-          ([k, v]) => selection[k] === v,
-        ),
-      )
+    ? [...p.variants]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .find((v) =>
+          Object.entries(v.option_values as Record<string, string>).every(
+            ([k, v]) => !v || selection[k] === v,
+          ),
+        )
     : null;
   const ready =
     available(p, quantity) &&
@@ -133,8 +135,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     slug: p.slug,
                     price: price(variant ?? p),
                     image: image ? mediaUrl(image) : null,
-                    options:
-                      (variant?.option_values as Record<string, string>) ?? {},
+                    options: selection,
                   })
                 }
               >

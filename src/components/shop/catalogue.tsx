@@ -1,12 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getProducts } from "@/lib/shop";
+import { getCatalogueProducts } from "@/lib/shop";
 import { ProductCard } from "./product-card";
 import { Container } from "@/components/layout/container";
 import { mediaUrl } from "@/lib/media";
 export async function Catalogue({ page = 1 }: { page?: number }) {
-  const products = await getProducts();
+  const products = await getCatalogueProducts();
   const pages = Math.ceil(products.length / 9);
   if (!Number.isInteger(page) || page < 1 || page > pages) notFound();
   return (

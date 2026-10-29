@@ -173,3 +173,23 @@ Next steps, before pushing/opening PR:
 5. Browser-check desktop/mobile shop, simple/variable/out-of-stock products, fly-out/cart/checkout/admin against live. Shop banner image is imported at `wp/2021/05/shop-banner-image.webp`; logo was missing from media, so original public artwork is in `public/shop/shop-logo.png`. Check hero/header parity (repo conventions currently put shop under plain layout).
 6. Harden admin saves: products/variants/gallery currently save sequentially, so validate/commit atomically if needed; prevent variant IDs from moving between products, including the new-product path. Preserve form values for order-note errors. Completion email failure/retry needs review. Check SEO fields against existing CMS conventions.
 7. Run lint/typecheck again, production build (stop dev first), then push and create the single PR with squash auto-merge; attach it. Only tick PR 11 after completion. Never touch DNS or PR 14, or commit `migration/exports/`.
+
+### PR 11 continuation checkpoint (Supabase7 verified)
+
+- Supabase7 (`rotta`, `wdctbixfjvwbvqlylpuf`, ACTIVE_HEALTHY) is now reachable. Applied `20261029001200_shop_checkout.sql` through that connector, including NULL-safe variant price comparison.
+- Added `supabase/tests/shop_checkout.sql`; executed successfully against Rotta inside a rolled-back transaction. Checks anonymous RPC/table denial, reservation stock, insufficient stock, idempotent release/fulfillment, server prices, wrong totals, non-MT delivery, VAT rounding, and paid stock protection. Sequence numbers may advance despite rollback.
+- Advisors confirm the checkout table is RLS enabled with no browser grants/policies (intentional service-role-only access). Existing public auth/content function advisories and disabled leaked-password protection remain.
+- Removed eager stock release after Stripe creation starts: ambiguous failures now retain stock. **This is only the safety half of the fix: durable session recovery/reconciliation and crash cleanup are still required.**
+- New-product saves now validate variant ownership too; saves remain sequential and require atomicity review.
+- Live saved helmet markup confirms variants 47209/47210 both have empty `attribute_choose-colour` wildcard attributes and identical prices. Kept first matching variant 47209 with `{"Choose Colour":""}`; removed redundant 47210 after verifying no order references. No colour-to-stitching mapping was guessed. UI selects the first matching variant by sort_order; checkout validates and snapshots the selected options, and cart identities include selections. Importer ignores obsolete attribute keys, preserves empty wildcard attributes, and deduplicates identical matches in Woo order.
+- `buy-a-photo` set to draft under the physical-only decision; importer now leaves virtual/downloadable products in draft. Other historical catalogue visibility/grouped product differences remain to resolve.
+- Local browser navigation still timed out. Production build and final verification results must be checked; do not infer full parity or payment lifecycle coverage from database tests.
+- PR 11 remains incomplete/unchecked. Do not auto-merge until recovery, atomic admin writes/email retries, remaining tests, and browser parity are complete.
+- Follow-up verification: production build completed (468 pages), lint and typecheck passed. Some final source changes occurred during/after that build, so rebuild the final tree before shipping. The production server (`pnpm start`, port 3000) allowed browser verification of shop, simple keychain product, fly-out cart (€12), and checkout (€12, free MT/Gozo shipping). Desktop/mobile screenshot parity and admin/variable/out-of-stock interactions still remain.
+- Added `getCatalogueProducts()` to exclude the three historical meal slugs from catalogue/related products while keeping their archive product URLs. Verify this final change in a fresh build.
+- Presence-only env check confirmed both `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are absent locally. Mike must configure these himself for real Stripe lifecycle testing; no values were read or requested.
+
+
+### Shop merge scope
+
+Mike requested pushing/merging and moving to PR 12. The shop implementation is merged with checkout explicitly disabled unless `SHOP_CHECKOUT_ENABLED=true`; adding Stripe keys alone cannot activate payments. Keep this flag false until durable recovery/reconciliation, atomic admin saves, email retry hardening, remaining lifecycle tests, and full browser parity have passed. PR 11 remains unchecked because those acceptance items are outstanding. Continue PR 12 independently; do not enable payments or perform go-live work as part of it.

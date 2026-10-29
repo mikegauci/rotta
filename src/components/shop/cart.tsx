@@ -43,7 +43,8 @@ const Context = createContext<{
   clear: () => {},
 });
 export const useCart = () => useContext(Context);
-const key = (i: CartItem) => i.variantId ?? i.productId;
+const key = (i: CartItem) =>
+  `${i.variantId ?? i.productId}:${JSON.stringify(Object.entries(i.options ?? {}).sort())}`;
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const items = useSyncExternalStore(
     subscribe,

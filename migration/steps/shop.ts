@@ -128,7 +128,9 @@ export function importShop(ctx: Context, users: Map<string, string>) {
       featured_media_id:
         ctx.media.byAttachment(m.get("_thumbnail_id"))?.id ?? null,
       status:
-        p.post_status === "publish"
+        p.post_status === "publish" &&
+        m.get("_virtual") !== "yes" &&
+        m.get("_downloadable") !== "yes"
           ? ("published" as const)
           : ("draft" as const),
       sort_order: index,
@@ -138,16 +140,20 @@ export function importShop(ctx: Context, users: Map<string, string>) {
   });
 
   const productIds = new Set(products.map((p) => p.ID!));
-  const variantRows = variations
+  const rawVariantRows = variations
     .filter((v) => productIds.has(v.post_parent!))
     .map((v, index) => {
       const m = meta.get(v.ID!) ?? new Map<string, string>();
       const names = attributeNames.get(v.post_parent!) ?? new Map();
-      const optionValues: Record<string, string> = {};
+      const optionValues: Record<string, string> = Object.fromEntries(
+        [...names.values()].map((name) => [name, ""]),
+      );
       for (const [key, value] of m) {
-        if (!key.startsWith("attribute_") || !value) continue;
+        if (!key.startsWith("attribute_")) continue;
         const attr = key.slice("attribute_".length);
-        optionValues[names.get(attr) ?? attr] = decodeEntities(value);
+        // Obsolete attributes are ignored by WooCommerce. Empty values are wildcards.
+        const name = names.get(attr);
+        if (name) optionValues[name] = decodeEntities(value);
       }
       return {
         id: ctx.id("product_variants", v.ID!),
@@ -169,6 +175,15 @@ export function importShop(ctx: Context, users: Map<string, string>) {
         sort_order: index,
       };
     });
+
+  // WooCommerce selects the first matching variation in menu order.
+  const seenVariants = new Set<string>();
+  const variantRows = rawVariantRows.filter((v) => {
+    const key = `${v.product_id}:${JSON.stringify(v.option_values)}`;
+    if (seenVariants.has(key)) return false;
+    seenVariants.add(key);
+    return true;
+  });
 
   ctx.upsert("product_categories", [...categories.values()] as never[], "id");
   ctx.upsert("product_tags", [...tags.values()] as never[], "id");

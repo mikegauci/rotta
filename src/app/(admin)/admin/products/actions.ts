@@ -86,7 +86,9 @@ export async function saveProduct(
       Array.isArray(values) ||
       typeof values !== "object" ||
       Object.keys(values).length !== input.options.length ||
-      input.options.some((o) => !o.values.includes(values[o.name]))
+      input.options.some(
+        (o) => values[o.name] !== "" && !o.values.includes(values[o.name]),
+      )
     )
       return { error: "Each variant must choose a value for every option." };
     const combination = JSON.stringify(
@@ -104,20 +106,16 @@ export async function saveProduct(
         .data
     : null;
   if (id && !previous) return { error: "Product not found." };
-  if (id) {
-    const allowed =
-      (await db.from("product_variants").select("id").eq("product_id", id))
-        .data ?? [];
-    for (const v of variants) {
-      const other = await db
-        .from("product_variants")
-        .select("product_id")
-        .eq("id", v.id)
-        .maybeSingle();
-      if (other.data && other.data.product_id !== id)
-        return { error: "Invalid variant." };
-    }
-    void allowed;
+  // Check new products too: upsert must never reparent an existing variant.
+  for (const v of variants) {
+    const other = await db
+      .from("product_variants")
+      .select("product_id")
+      .eq("id", v.id)
+      .maybeSingle();
+    if (other.error) return { error: "Could not validate variant ownership." };
+    if (other.data && other.data.product_id !== id)
+      return { error: "Invalid variant." };
   }
   const saved = id
     ? await db
@@ -144,15 +142,13 @@ export async function saveProduct(
   if (saved.error) return { error: saved.error.message };
   const productId = saved.data.id;
   if (variants.length) {
-    const result = await db
-      .from("product_variants")
-      .upsert(
-        variants.map((v, i) => ({
-          ...v,
-          product_id: productId,
-          sort_order: i,
-        })),
-      );
+    const result = await db.from("product_variants").upsert(
+      variants.map((v, i) => ({
+        ...v,
+        product_id: productId,
+        sort_order: i,
+      })),
+    );
     if (result.error) return { error: result.error.message };
   }
   const existing = await db
@@ -179,27 +175,23 @@ export async function saveProduct(
     .eq("product_id", productId);
   if (cleared.error) return { error: cleared.error.message };
   if (gallery.length) {
-    const result = await db
-      .from("product_media")
-      .insert(
-        [...new Set(gallery)].map((media_id, sort_order) => ({
-          product_id: productId,
-          media_id,
-          sort_order,
-        })),
-      );
+    const result = await db.from("product_media").insert(
+      [...new Set(gallery)].map((media_id, sort_order) => ({
+        product_id: productId,
+        media_id,
+        sort_order,
+      })),
+    );
     if (result.error) return { error: result.error.message };
   }
   if (previous && previous.slug !== slug && previous.status === "published") {
-    const r = await db
-      .from("redirects")
-      .upsert(
-        {
-          source: `/product/${previous.slug}/`,
-          destination: `/product/${slug}/`,
-        },
-        { onConflict: "source" },
-      );
+    const r = await db.from("redirects").upsert(
+      {
+        source: `/product/${previous.slug}/`,
+        destination: `/product/${slug}/`,
+      },
+      { onConflict: "source" },
+    );
     if (r.error) return { error: r.error.message };
     await db.from("redirects").delete().eq("source", `/product/${slug}/`);
   }

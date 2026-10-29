@@ -20,6 +20,7 @@ export function CartPage({ checkout = false }: { checkout?: boolean }) {
             productId: i.productId,
             variantId: i.variantId,
             quantity: i.quantity,
+            options: i.options,
           })),
         }),
       });

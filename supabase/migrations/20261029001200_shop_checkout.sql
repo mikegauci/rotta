@@ -33,7 +33,7 @@ begin
    end if;
    if nullif(item->>'variant_id','') is not null then
      select * into strict v from public.product_variants where id=(item->>'variant_id')::uuid and product_id=p.id for update;
-     if v.stock_status='out_of_stock' or coalesce(v.sale_price_cents,v.price_cents) <> (item->>'unit_price_cents')::integer then raise exception 'Variant unavailable or price changed'; end if;
+     if v.stock_status='out_of_stock' or coalesce(v.sale_price_cents,v.price_cents) is distinct from (item->>'unit_price_cents')::integer then raise exception 'Variant unavailable or price changed'; end if;
      if v.manage_stock then
        if coalesce(v.stock_quantity,0) < (item->>'quantity')::integer then raise exception 'Insufficient stock'; end if;
        update public.product_variants set stock_quantity=stock_quantity-(item->>'quantity')::integer where id=v.id;
