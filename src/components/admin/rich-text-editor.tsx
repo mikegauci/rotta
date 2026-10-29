@@ -113,7 +113,7 @@ function VisualEditor({
         : null,
   });
 
-  if (!editor || !state) return <div className="min-h-[460px]" />;
+  if (!editor) return <div className="min-h-[460px]" />;
   const chain = () => editor.chain().focus();
 
   function setLink() {
@@ -133,56 +133,56 @@ function VisualEditor({
     {
       label: "H2",
       title: "Heading",
-      active: state.h2,
+      active: state?.h2,
       run: () => chain().toggleHeading({ level: 2 }).run(),
     },
     {
       label: "H3",
       title: "Subheading",
-      active: state.h3,
+      active: state?.h3,
       run: () => chain().toggleHeading({ level: 3 }).run(),
     },
     {
       label: "H4",
       title: "Small heading",
-      active: state.h4,
+      active: state?.h4,
       run: () => chain().toggleHeading({ level: 4 }).run(),
     },
     {
       label: "B",
       title: "Bold",
-      active: state.bold,
+      active: state?.bold,
       run: () => chain().toggleBold().run(),
     },
     {
       label: "I",
       title: "Italic",
-      active: state.italic,
+      active: state?.italic,
       run: () => chain().toggleItalic().run(),
     },
     {
       label: "U",
       title: "Underline",
-      active: state.underline,
+      active: state?.underline,
       run: () => chain().toggleUnderline().run(),
     },
-    { label: "Link", title: "Link", active: state.link, run: setLink },
+    { label: "Link", title: "Link", active: state?.link, run: setLink },
     {
       label: "• List",
       title: "Bulleted list",
-      active: state.bullet,
+      active: state?.bullet,
       run: () => chain().toggleBulletList().run(),
     },
     {
       label: "1. List",
       title: "Numbered list",
-      active: state.ordered,
+      active: state?.ordered,
       run: () => chain().toggleOrderedList().run(),
     },
     {
       label: "Quote",
       title: "Quote",
-      active: state.quote,
+      active: state?.quote,
       run: () => chain().toggleBlockquote().run(),
     },
     {

@@ -231,7 +231,7 @@ export function PostEditor({
       </div>
 
       <aside className="space-y-6">
-        <div className={`${panel} lg:sticky lg:top-6`}>
+        <div className={panel}>
           <div className="flex items-center justify-between text-sm">
             <span>
               Status:{" "}
