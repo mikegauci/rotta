@@ -117,14 +117,12 @@ export async function savePost(input: PostInput): Promise<SaveResult> {
 
   const inserts = await Promise.all([
     input.categoryIds.length
-      ? supabase
-          .from("post_category_links")
-          .insert(
-            input.categoryIds.map((category_id) => ({
-              post_id: id,
-              category_id,
-            })),
-          )
+      ? supabase.from("post_category_links").insert(
+          input.categoryIds.map((category_id) => ({
+            post_id: id,
+            category_id,
+          })),
+        )
       : null,
     tagIds.ids.length
       ? supabase
