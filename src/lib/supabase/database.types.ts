@@ -508,7 +508,15 @@ export type Database = {
           updated_at?: string;
           wp_id?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "pages_hero_media_id_fkey";
+            columns: ["hero_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       post_categories: {
         Row: {
@@ -674,6 +682,13 @@ export type Database = {
           wp_id?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "posts_hero_media_id_fkey";
+            columns: ["hero_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "posts_author_id_fkey";
             columns: ["author_id"];
@@ -1258,6 +1273,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      post_authors: {
+        Args: never;
+        Returns: {
+          full_name: string | null;
+          id: string;
+          username: string | null;
+        }[];
+      };
       admin_update_business: {
         Args: {
           new_owner: string;
