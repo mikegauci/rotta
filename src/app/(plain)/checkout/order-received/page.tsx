@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { ClearPaidCart } from "@/components/shop/clear-paid-cart";
 export const metadata = { title: "Order received", robots: { index: false } };
@@ -9,6 +10,7 @@ async function Receipt({
   searchParams: Promise<{ session_id?: string }>;
 }) {
   const { session_id } = await searchParams;
+  await connection();
   let paid = false;
   try {
     if (session_id?.startsWith("cs_")) {

@@ -19,9 +19,15 @@ export default async function Page({
   return (
     <>
       <AdminPageHeader
-        title={`Order #${o.number}`}
+        title={`Order #${o.number}${o.livemode ? "" : " (test)"}`}
         description={`${o.email} · ${formatPostDate(o.created_at)}`}
       />
+      {!o.livemode && (
+        <p className="mb-5 rounded bg-yellow-100 p-3 text-sm">
+          Paid in Stripe test mode: no real money was taken. Test orders are
+          hidden from the orders list and can be deleted there.
+        </p>
+      )}
       <section className="space-y-5 rounded bg-white p-5">
         {o.items.map((i) => (
           <div
