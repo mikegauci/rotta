@@ -1,3 +1,4 @@
+import { RecentDirectoryListings } from "@/components/admin/recent-directory-listings";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -180,6 +181,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
           </section>
         </>
       )}
+      <RecentDirectoryListings />
       <section id="calendar" className="mt-8 rounded-lg bg-white p-5 shadow-sm">
         <div className="mb-5 flex items-center justify-between gap-3">
           <h2 className="text-xl font-bold">Events calendar</h2>
