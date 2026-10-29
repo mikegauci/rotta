@@ -9,17 +9,23 @@ export function RegisterForm() {
   const [state, action] = useActionState(signUp, undefined);
 
   return (
-    <form action={action} className="mt-8 space-y-5">
+    <form
+      key={JSON.stringify(state?.fields)}
+      action={action}
+      className="mt-8 space-y-5"
+    >
       <div className="grid gap-5 sm:grid-cols-2">
         <AuthInput
           label="First*"
           name="first_name"
+          defaultValue={state?.fields?.first_name}
           autoComplete="given-name"
           required
         />
         <AuthInput
           label="Last*"
           name="last_name"
+          defaultValue={state?.fields?.last_name}
           autoComplete="family-name"
           required
         />
@@ -28,6 +34,7 @@ export function RegisterForm() {
         <AuthInput
           label="Username*"
           name="username"
+          defaultValue={state?.fields?.username}
           autoComplete="username"
           pattern="[a-z0-9]{3,32}"
           required
@@ -40,6 +47,7 @@ export function RegisterForm() {
         <AuthInput
           label="Email Address*"
           name="email"
+          defaultValue={state?.fields?.email}
           type="email"
           autoComplete="email"
           required
@@ -47,6 +55,7 @@ export function RegisterForm() {
         <AuthInput
           label="Confirm Email*"
           name="email_confirm"
+          defaultValue={state?.fields?.email_confirm}
           type="email"
           required
         />

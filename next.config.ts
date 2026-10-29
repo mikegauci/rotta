@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   // Keep the WordPress URL style (/directory/, /shop/...) for SEO parity.
   trailingSlash: true,
+  images: {
+    remotePatterns: [
+      new URL(
+        "https://wdctbixfjvwbvqlylpuf.supabase.co/storage/v1/object/public/**",
+      ),
+    ],
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

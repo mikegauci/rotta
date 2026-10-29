@@ -15,6 +15,53 @@ export type Database = {
   };
   public: {
     Tables: {
+      media: {
+        Row: {
+          alt: string;
+          created_at: string;
+          file_name: string;
+          height: number | null;
+          id: string;
+          mime_type: string;
+          path: string;
+          size_bytes: number;
+          uploaded_by: string | null;
+          width: number | null;
+        };
+        Insert: {
+          alt?: string;
+          created_at?: string;
+          file_name: string;
+          height?: number | null;
+          id?: string;
+          mime_type: string;
+          path: string;
+          size_bytes: number;
+          uploaded_by?: string | null;
+          width?: number | null;
+        };
+        Update: {
+          alt?: string;
+          created_at?: string;
+          file_name?: string;
+          height?: number | null;
+          id?: string;
+          mime_type?: string;
+          path?: string;
+          size_bytes?: number;
+          uploaded_by?: string | null;
+          width?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "media_uploaded_by_fkey";
+            columns: ["uploaded_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
