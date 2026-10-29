@@ -14,6 +14,7 @@ import { VehicleCard } from "@/components/marketplace/vehicle-card";
 import { env } from "@/lib/env";
 import { getVehicle, getVehicles, type Vehicle } from "@/lib/marketplace";
 import { mediaUrl } from "@/lib/media";
+import { notFoundMetadata, pageMetadata } from "@/lib/seo";
 import { featureDisplay, VEHICLE_FEATURES } from "@/lib/vehicle-features";
 
 // Vehicles live at /marketplace/<slug>/, as on WordPress.
@@ -27,22 +28,21 @@ export async function generateMetadata({
 }: PageProps<"/marketplace/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const vehicle = await getVehicle(slug);
-  if (!vehicle) return {};
+  if (!vehicle) return notFoundMetadata;
   const description =
     vehicle.seo.description ||
     `${vehicle.title}${vehicle.price ? `, ${vehicle.price}` : ""}. ${vehicle.description}`
       .slice(0, 160)
       .trim();
-  return {
-    title: vehicle.seo.title || vehicle.title,
+  return pageMetadata({
+    name: vehicle.title,
+    path: `/marketplace/${vehicle.slug}/`,
+    seo: vehicle.seo,
     description,
-    robots: { index: false },
-    openGraph: {
-      title: vehicle.title,
-      description,
-      images: vehicle.image ? [mediaUrl(vehicle.image.path)] : undefined,
-    },
-  };
+    image: vehicle.image?.path,
+    type: "article",
+    noindex: true,
+  });
 }
 
 function Features({ vehicle }: { vehicle: Vehicle }) {

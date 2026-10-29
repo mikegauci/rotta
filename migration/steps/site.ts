@@ -44,7 +44,7 @@ export function importSite(ctx: Context) {
         ? (ctx.media.byUrl(hero.imageUrl)?.id ?? null)
         : null,
       status: "published" as const,
-      seo: seoFrom(ctx, meta.get(p.ID!)),
+      seo: seoFrom(ctx, meta.get(p.ID!), p.post_title ?? ""),
       created_at: wpDate(p.post_date_gmt, p.post_date) ?? undefined,
     };
   });
@@ -132,7 +132,7 @@ export function importSite(ctx: Context) {
         ? `${card.publishing_date.slice(0, 4)}-${card.publishing_date.slice(4, 6)}-${card.publishing_date.slice(6, 8)}`
         : (wpDate(v.post_date_gmt, v.post_date) ?? "").slice(0, 10) || null,
       status: card ? ("published" as const) : ("draft" as const),
-      seo: { ...seoFrom(ctx, m), noindex: true },
+      seo: { ...seoFrom(ctx, m, v.post_title ?? ""), noindex: true },
       created_at: wpDate(v.post_date_gmt, v.post_date) ?? undefined,
     };
   });

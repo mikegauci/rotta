@@ -134,7 +134,7 @@ export function importShop(ctx: Context, users: Map<string, string>) {
           ? ("published" as const)
           : ("draft" as const),
       sort_order: index,
-      seo: seoFrom(ctx, m),
+      seo: seoFrom(ctx, m, p.post_title ?? ""),
       created_at: wpDate(p.post_date_gmt, p.post_date) ?? undefined,
     };
   });

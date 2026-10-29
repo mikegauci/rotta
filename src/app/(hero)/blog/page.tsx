@@ -1,11 +1,13 @@
-import type { Metadata } from "next";
 import { PostGrid } from "@/components/blog/post-card";
 import { Container } from "@/components/layout/container";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { PageHero } from "@/components/page-hero";
 import { getPageHero, getPostSummaries } from "@/lib/blog";
+import { codePageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Blog" };
+export function generateMetadata() {
+  return codePageMetadata("blog", "Blog");
+}
 
 export default async function BlogPage() {
   const [hero, posts] = await Promise.all([

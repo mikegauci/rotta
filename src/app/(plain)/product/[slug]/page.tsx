@@ -4,6 +4,7 @@ import { getProduct, getProducts, getCatalogueProducts } from "@/lib/shop";
 import { ProductDetail } from "@/components/shop/product-detail";
 import { ProductCard } from "@/components/shop/product-card";
 import { Container } from "@/components/layout/container";
+import { notFoundMetadata, pageMetadata, type Seo } from "@/lib/seo";
 export async function generateStaticParams() {
   return (await getProducts()).map((p) => ({ slug: p.slug }));
 }
@@ -13,16 +14,15 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const p = await getProduct((await params).slug);
-  const seo = p?.seo as {
-    title?: string;
-    description?: string;
-    noindex?: boolean;
-  };
-  return {
-    title: seo?.title ?? p?.name,
-    description: seo?.description,
-    robots: seo?.noindex ? { index: false } : undefined,
-  };
+  if (!p) return notFoundMetadata;
+  return pageMetadata({
+    name: p.name,
+    path: `/product/${p.slug}/`,
+    seo: (p.seo ?? {}) as Seo,
+    description: p.short_description?.replace(/<[^>]+>/g, " "),
+    image: p.image?.path,
+    type: "article",
+  });
 }
 async function Content({ params }: { params: Promise<{ slug: string }> }) {
   const p = await getProduct((await params).slug);

@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
 import { AuthSection, AuthTitle } from "@/components/auth/auth-section";
 import { ResetPasswordForm } from "@/components/auth/password-forms";
+import { codePageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Reset Password" };
+export function generateMetadata() {
+  return codePageMetadata("reset-password", "Reset Password");
+}
 
 export default function ResetPasswordPage() {
   return (

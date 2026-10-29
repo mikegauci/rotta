@@ -6,7 +6,7 @@ Rebuild of rotta.mt (Malta automotive community site) from WordPress to **Next.j
 
 - **Exact 1:1 design and content** with the live site. When in doubt, compare against https://rotta.mt.
 - English only.
-- **Never point rotta.mt DNS (Cloudflare) at Vercel without explicit go-ahead from Mike.** Until then everything runs on Vercel preview URLs.
+- **Never point rotta.mt DNS (Cloudflare) at Vercel without explicit go-ahead from Mike.** The Vercel production alias is used for integration checks while rotta.mt still serves WordPress.
 - Never commit secrets or anything in `migration/exports/` (DB dump, uploads). Both are gitignored.
 
 ## Stack
@@ -82,9 +82,12 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Events data lives in `@/lib/events` (cached under `events` and `event:<slug>`). URLs match WordPress: `/events/`, `/events/?frmcal-month=MM&frmcal-year=YYYY` for the calendar, `/events/<slug>/`. "Upcoming" uses today in Europe/Malta, so that part of the page renders per request. "Previous Events" are three hand-picked shop products (`PREVIOUS_EVENT_PRODUCTS`). The public "Add Event" form (`submitEvent`) writes with the secret key through `createAdminClient()` (`@/lib/supabase/admin`), re-encodes posters with sharp to WebP (max 2000px) under `media/events/`, and uses a honeypot plus a minimum fill time against bots.
 - Watch data lives in `@/lib/watch` (cached under `videos`): each `video_series` is one carousel on `/watch/` (title artwork in `title_media_id`, a description, admin order), with its published `videos` in `sort_order`. Thumbnails come from `img.youtube.com`; the play button opens a youtube-nocookie lightbox. Admins add videos by pasting a YouTube link at `/admin/videos/` (the title comes from YouTube oEmbed). The hero MP4 is in Storage at `wp/2021/01/rotta-video-bg.mp4`.
 - Marketplace data lives in `@/lib/marketplace` (cached under `vehicles` and `vehicle:<slug>`). The old hand-built WordPress pages became a template: `content` is the description, `details` holds the feature icons (`@/lib/vehicle-features`, SVGs in `public/marketplace/icons/`), `seller_details` is one line per row, photos are `vehicle_media`. Every marketplace page is noindex.
+- SEO: build page metadata with `pageMetadata()` / `codePageMetadata()` from `@/lib/seo` (canonical, Open Graph, Twitter card, noindex). `seo.title` is the **full** browser title (Yoast parity, e.g. "Watch - Rotta | Sharing a Passion"); without it the title is "<name> - Rotta". Code pages (home, watch, shop...) take their SEO from the `pages` row with the same path. Missing slugs return `notFoundMetadata`.
+- Indexing and analytics follow `NEXT_PUBLIC_SITE_URL`: only when its host is `rotta.mt` (`isLiveSite`) does `robots.txt` allow crawling and GA4 `G-Y1D8J24FMB` load. Previews and the Vercel alias are `Disallow: /`. `src/app/sitemap.ts` replaces Yoast's sitemaps.
+- Redirects: `src/proxy.ts` serves the `redirects` table (cached 60s per instance; CMS renames add rows) plus fixed rules for retired WordPress URLs in `@/lib/redirects` (Yoast sitemaps → `/sitemap.xml`, `/product-category/` and `/product-tag/` → `/shop/`, `/frm_display/` → `/`, `/feed/` → `/blog/`, `/wp-admin` → `/login/`). Old `/wp-content/uploads/...` links 301 to the migrated Storage file (WebP, size variants mapped to the original) via `src/app/wp-content/uploads/[...path]/route.ts`.
 - `<GetInTouch />` (`@/components/get-in-touch`) emails `EMAIL_ADMIN_TO` through `sendContactMessage`.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
-- One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
+- One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on. Follow-up work for a merged item gets a new branch/PR; do not rewrite its merged history.
 
 ## Product decisions
 
@@ -121,81 +124,64 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 13. **SEO and QA**: sitemaps, metadata, GA4, redirects, visual parity check against the live site.
 14. **Go-live**: final data sync and the Cloudflare DNS switch. **Only after Mike's go-ahead.**
 
-## Status
+## Status and handoff (2026-10-29)
 
-- [x] Exports received (DB dump of live rotta.mt, uploads.zip, astra-child.zip; 2026-10-29)
-- [x] PR 1 Foundation
-- [x] PR 2 Design system and layout
-- [x] PR 3 Auth and roles
-- [x] PR 6 Admin CMS shell
-- [x] PR 2b Email (Resend helper; Supabase SMTP set in dashboard)
-- [x] PR 4 Schema
-- [x] PR 5 Migration scripts (first import done 2026-10-29)
-- [x] PR 7 Blog (public pages)
-- [x] PR 7b Blog admin editor
-- [x] PR 8 Directory (8a public pages, 8b My Business + admin)
-- [x] PR 9 Events
-- [x] PR 10 Watch and Marketplace
-- [ ] PR 11 Shop
-- [x] PR 12 Homepage and static pages
-- [ ] PR 13 SEO and QA
-- [ ] PR 14 Go-live (only after Mike's go-ahead)
+- [x] Exports received (live rotta.mt DB dump, uploads.zip, astra-child.zip)
+- [x] PR 1 Foundation; PR 2 Design system; PR 2b Email; PR 3 Auth and roles; PR 4 Schema; PR 5 Migration and first import; PR 6 Admin CMS
+- [x] PR 7 Blog and PR 7b Blog admin; PR 8 Directory and My Business; PR 9 Events; PR 10 Watch and Marketplace
+- [x] PR 11 shop **code merged** as [#17](https://github.com/mikegauci/rotta/pull/17), but payment acceptance and hardening remain open. `SHOP_CHECKOUT_ENABLED=false` is the server-side gate; do not mark the shop production-ready.
+- [x] PR 12 Homepage and static pages merged as [#18](https://github.com/mikegauci/rotta/pull/18).
+- [x] PR 13 SEO and QA (see below)
+- [ ] Shop payment hardening and test-mode end-to-end acceptance, in a separate follow-up PR
+- [ ] PR 14 Final sync and go-live, including Cloudflare DNS switch **only with Mike's explicit go-ahead**
 
-Open to-dos:
+Start new work from a freshly fetched `origin/main` on a new `pr/NN-name` branch, then check `git status` and current PR state. Never commit `.env`, `.env.local`, `migration/exports/`, or secret values.
 
-- Stripe keys: Mike adds them himself (Vercel env and `.env`); never ask for or handle key values.
-- Test My Business (`/my-business/`) with a business owner account, including a logo upload.
-- Rotate the legacy Supabase secret key (the `eyJ` one) for a new-style secret key, then update `.env` and Vercel.
-- If spam events appear, add Cloudflare Turnstile to the Add Event form.
+### Shop and Stripe: implemented state
 
-## PR 11 handoff (in progress, 2026-10-29)
+PR #17 includes public catalogue/product pages, variations, gallery, fly-out cart, cart and checkout, Stripe Checkout session creation, signed webhook, stock reservation/fulfillment SQL, order emails, payment receipt, and product/order admin. The checkout API returns HTTP 503 unless `SHOP_CHECKOUT_ENABLED=true`. Merely adding Stripe credentials does not enable payments.
 
-Work is on `pr/11-shop`. **PR 11 is not complete; do not tick it yet.** This is a local checkpoint, not a published PR. Continue in this checkout; do not discard these changes.
+The Rotta Supabase project is `wdctbixfjvwbvqlylpuf` (eu-west-1). Migration `supabase/migrations/20261029001200_shop_checkout.sql` has been applied. `supabase/tests/shop_checkout.sql` passed against Rotta inside a rolled-back transaction: anonymous RPC/table denial, stock reservation and insufficient-stock rejection, idempotent release/fulfillment, server-side pricing and totals, Malta-only shipping, VAT rounding, and protection of paid stock. Sequence numbers can advance despite rollback. Checkout table access is intentionally service-role-only. Existing public auth/content function advisories and disabled leaked-password protection remain separate findings.
 
-Implemented first pass:
+The live Stripe account was verified as Rotta (`acct_1IqKkAHpCctJw60T`, Malta). Mike supplied a live secret key privately in the ignored local `.env`. On 2026-10-29, a live webhook endpoint was created and enabled:
 
-- Public shop, `/shop/page/N/`, `/product/<slug>/`, variation selectors, image galleries, related products.
-- Persistent fly-out cart, cart/checkout pages, server-validated hosted Stripe Checkout.
-- Server-only stock reservation/expiry and atomic idempotent order fulfillment SQL in `supabase/migrations/20261029001200_shop_checkout.sql`.
-- Signed Stripe webhook, customer profile creation, order/admin emails with Resend idempotency keys, payment receipt page.
-- Products/variants/media/SEO editor and orders list/detail/status/notes admin; sidebar enabled.
-- `.env.example` documents `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. Mike supplies values; never read/print/request them. Hosted redirect needs no publishable Stripe key.
-- Stripe SDK 23.0.1 uses `allowed_payment_method_types: ["card"]` (the older create-session `payment_method_types` parameter was removed). No PayPal.
+- Endpoint ID: `we_1UVwHUHpCctJw60THIThHlfN`
+- URL: `https://rotta-livid.vercel.app/api/stripe/webhook/`
+- Events: `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`
+- Its signing secret is saved privately in ignored `.env` and Vercel **production** environment. `STRIPE_SECRET_KEY` is also configured in both places. Do not read, print, request, or commit either value.
+- `SHOP_CHECKOUT_ENABLED=false` is set locally and in Vercel production. Preview environment variables were not changed in this setup.
+- Vercel project: `rotta` in team `mikegaucis-projects`. The previous production deployment was redeployed with these variables; deployment `rotta-e0vgvg6u4-mikegaucis-projects.vercel.app` reached READY and the stable alias above served it. This does **not** change rotta.mt DNS.
+- A synthetic, signed, otherwise ignored Stripe event returned HTTP 200; the same request with an invalid signature returned HTTP 400. Checkout POST returned HTTP 503. These checks made no charge and exercised no order fulfillment. No full payment lifecycle has been tested.
 
-Verification so far: `pnpm lint`, `pnpm typecheck`, `git diff --check` pass. Live shop and tee product were inspected in the browser. Local browser navigation timed out; **visual parity and checkout have not been verified**. An existing dev process serves this repo on port 3000. No production build or payment test has run.
+Local `.env` also stores `STRIPE_WEBHOOK_ENDPOINT_ID` and `STRIPE_WEBHOOK_URL` for reference. `.env.example` documents the required variables. Do not create a duplicate webhook endpoint. The webhook signing secret is generated when the endpoint is created; it cannot be derived from the Stripe API secret key.
 
-Next steps, before pushing/opening PR:
+The import reconciled helmet-stand variation attributes with saved live WooCommerce markup: original variants 47209 and 47210 both had an empty `attribute_choose-colour` wildcard and equal prices. Variant 47209 is retained; 47210 was removed only after checking there were no order-item references. UI and checkout preserve selected options in the cart identity and order snapshot. No invented colour-to-stitching mapping was used. Digital `buy-a-photo` is draft under the physical-only decision; the importer also drafts virtual/downloadable products. Three historical meal products are hidden from catalogue/related products while their original URLs remain available.
 
-1. Refresh Supabase tools. Old chat exposed only supabase6 (Annafatale) and Primary (pantrila/tally-hawk); neither exposed Rotta. Mike says the new connection is **supabase7**. Discover it and verify project `wdctbixfjvwbvqlylpuf` before applying anything. The new checkout migration has **NOT** been applied. Apply via connector, verify RPC access (service role only), run security advisors, regenerate types if useful.
-2. Review/harden checkout lifecycle before production: a Stripe request timeout can be ambiguous (session may exist even when create throws); current catch releases the reservation too eagerly. Persist/recover the session using its idempotency key, and ensure reservations never leak after a process crash. Add meaningful tests for duplicate/concurrent fulfillment, expiry/release, insufficient stock, server-side prices, VAT rounding, non-MT addresses, invalid signatures, and email retries. Test keys/webhook setup remain Mike's responsibility.
-3. Resolve imported catalogue differences against live site: DB has 18 published products, including three historical meal/event products absent from live shop; inspect catalogue visibility/grouped products. `buy-a-photo` is digital on live site but the product decision says physical products only; ensure it cannot be sold as a physical item. Do not silently ignore this decision.
-4. Helmet stand options are `Choose Colour: Walnut (Steel Rod) | Oak (Black Rod)`, but imported variant values still use `choose-stitching-colour: Dark Brown/Light Brown`. Live WooCommerce variation attributes are empty wildcards; do not assume variant mapping without checking. A guessed SQL mapping was deliberately removed; correct importer/data and preserve selected options in order snapshots. Existing `/tmp/rotta-stand.html` has live markup if still available.
-5. Browser-check desktop/mobile shop, simple/variable/out-of-stock products, fly-out/cart/checkout/admin against live. Shop banner image is imported at `wp/2021/05/shop-banner-image.webp`; logo was missing from media, so original public artwork is in `public/shop/shop-logo.png`. Check hero/header parity (repo conventions currently put shop under plain layout).
-6. Harden admin saves: products/variants/gallery currently save sequentially, so validate/commit atomically if needed; prevent variant IDs from moving between products, including the new-product path. Preserve form values for order-note errors. Completion email failure/retry needs review. Check SEO fields against existing CMS conventions.
-7. Run lint/typecheck again, production build (stop dev first), then push and create the single PR with squash auto-merge; attach it. Only tick PR 11 after completion. Never touch DNS or PR 14, or commit `migration/exports/`.
+**Payment work still required before enabling checkout:**
 
-### PR 11 continuation checkpoint (Supabase7 verified)
+1. Make Stripe session creation recoverable after ambiguous timeouts using durable idempotency/session state, and reconcile or expire stock reservations after process crashes. Current behavior deliberately retains reserved stock once the Stripe request starts, but can leak reservations without recovery.
+2. Make admin product, variant and gallery writes atomic; preserve the order-note form value on errors; harden completion-email failure and retry handling.
+3. Add meaningful tests for concurrent/duplicate fulfillment, invalid webhook signatures, expiry/release, email retries and session recovery. Then test a full purchase, webhook, order, stock and email lifecycle using **test-mode** Stripe credentials. The configured key is live; do not use it to make test charges.
+4. Check desktop and mobile shop parity, simple/variable/out-of-stock products, fly-out/cart/checkout/admin, and remaining catalogue/grouped-product differences against live WooCommerce.
+5. Run `pnpm lint`, `pnpm typecheck`, `pnpm build` (stop dev before build), and deploy/check the follow-up PR. Enable `SHOP_CHECKOUT_ENABLED=true` only after all acceptance checks pass and Mike authorizes payment activation if approval is needed at that point. Do not touch DNS as part of shop work.
 
-- Supabase7 (`rotta`, `wdctbixfjvwbvqlylpuf`, ACTIVE_HEALTHY) is now reachable. Applied `20261029001200_shop_checkout.sql` through that connector, including NULL-safe variant price comparison.
-- Added `supabase/tests/shop_checkout.sql`; executed successfully against Rotta inside a rolled-back transaction. Checks anonymous RPC/table denial, reservation stock, insufficient stock, idempotent release/fulfillment, server prices, wrong totals, non-MT delivery, VAT rounding, and paid stock protection. Sequence numbers may advance despite rollback.
-- Advisors confirm the checkout table is RLS enabled with no browser grants/policies (intentional service-role-only access). Existing public auth/content function advisories and disabled leaked-password protection remain.
-- Removed eager stock release after Stripe creation starts: ambiguous failures now retain stock. **This is only the safety half of the fix: durable session recovery/reconciliation and crash cleanup are still required.**
-- New-product saves now validate variant ownership too; saves remain sequential and require atomicity review.
-- Live saved helmet markup confirms variants 47209/47210 both have empty `attribute_choose-colour` wildcard attributes and identical prices. Kept first matching variant 47209 with `{"Choose Colour":""}`; removed redundant 47210 after verifying no order references. No colour-to-stitching mapping was guessed. UI selects the first matching variant by sort_order; checkout validates and snapshots the selected options, and cart identities include selections. Importer ignores obsolete attribute keys, preserves empty wildcard attributes, and deduplicates identical matches in Woo order.
-- `buy-a-photo` set to draft under the physical-only decision; importer now leaves virtual/downloadable products in draft. Other historical catalogue visibility/grouped product differences remain to resolve.
-- Local browser navigation still timed out. Production build and final verification results must be checked; do not infer full parity or payment lifecycle coverage from database tests.
-- PR 11 remains incomplete/unchecked. Do not auto-merge until recovery, atomic admin writes/email retries, remaining tests, and browser parity are complete.
-- Follow-up verification: production build completed (468 pages), lint and typecheck passed. Some final source changes occurred during/after that build, so rebuild the final tree before shipping. The production server (`pnpm start`, port 3000) allowed browser verification of shop, simple keychain product, fly-out cart (€12), and checkout (€12, free MT/Gozo shipping). Desktop/mobile screenshot parity and admin/variable/out-of-stock interactions still remain.
-- Added `getCatalogueProducts()` to exclude the three historical meal slugs from catalogue/related products while keeping their archive product URLs. Verify this final change in a fresh build.
-- Presence-only env check confirmed both `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are absent locally. Mike must configure these himself for real Stripe lifecycle testing; no values were read or requested.
+### PR 12: merged state
 
+Homepage uses the original garage MP4 and artwork, Super 90 video, Best in Show story, directory/shop/events panels and shared contact form. `/contact-us/` uses the original Ferrari hero; `/privacy-policy/` uses published imported content and SEO. Marketplace and Instagram are omitted per product decisions. Imported policy CSS was scoped to `.privacy-content` after detecting list-style leakage into navigation. The newsletter remains low priority and is not wired.
 
-### Shop merge scope
+PR #18 passed lint, typecheck, production build (469 pages), and diff checks. Desktop home/contact comparisons and 390px mobile home/contact checks showed working video/images, no horizontal overflow, and empty-form validation; no real email was sent. The browser connection failed during the final privacy-policy screenshot recheck, so inspect that page again during PR 13. No DNS work was done.
 
-Mike requested pushing/merging and moving to PR 12. The shop implementation is merged with checkout explicitly disabled unless `SHOP_CHECKOUT_ENABLED=true`; adding Stripe keys alone cannot activate payments. Keep this flag false until durable recovery/reconciliation, atomic admin saves, email retry hardening, remaining lifecycle tests, and full browser parity have passed. PR 11 remains unchecked because those acceptance items are outstanding. Continue PR 12 independently; do not enable payments or perform go-live work as part of it.
+### PR 13: SEO and QA
 
-## PR 12 Homepage and static pages
+Done: shared metadata helper on every public page; Yoast titles resolved by the importer and backfilled into `posts.seo`/`pages.seo`; sitemap, robots, GA4 (live host only); proxy redirects plus uploads redirects; retired-URL 301s (`20261029001300_retired_url_redirects.sql`); 404 page with site chrome. Every URL in the live Yoast sitemaps (469) returns 200 or 301 on a production build; only `/test/`, `/test34rt/` and `/slide-anything-popup-preview/` 404 by design. A crawl of all 420 pages found no broken internal links or images. Mobile (375px) sweep of 21 page types found no horizontal overflow or broken images. Privacy page: removed the duplicate visible heading.
 
-Implemented on `pr/12-homepage-static` (PR #18): original homepage garage MP4, featured Super 90 video and Best in Show story, directory/shop/events panels, shared contact form on home and `/contact-us/`, published imported privacy content and SEO. Marketplace and Instagram omitted per decisions. Original missing homepage artwork/video is kept in `public/home/`; no new storage uploads or secrets.
+Remaining gaps:
 
-Verification: lint, typecheck, production build (469 pages), and diff checks passed. Compared live and local desktop layouts; checked 390px mobile home/contact without horizontal overflow, video playback and image loading, and empty-form validation without sending email. Scoped the imported policy's flat CSS rules to `.privacy-content` after detecting list-style leakage into navigation; verified every generated policy selector is scoped. The browser connection became unavailable during the final policy screenshot recheck, so that visual recheck remains for PR 13. Newsletter wiring remains deferred as originally planned. Stripe/payment activation stays skipped and disabled at Mike's request; no DNS or go-live work performed.
+- `/my-business/` with a business-owner account (logo upload, owner restrictions) is **untested**: it needs Mike (or a test owner account he creates) to sign in. The admin visual pass also needs a signed-in session.
+- Unknown slugs: the first request streams HTTP 200 with `noindex` before the route caches a 404 (Next.js streaming behaviour); later requests return 404.
+- `/product-category/*` and `/product-tag/*` redirect to `/shop/`; there are no product category/tag pages. Author archives exist but are not in the sitemap (as with Yoast).
+- Marketplace vehicle titles use the page heading (e.g. "Porsche 911 Carrera S (992) 2019") where live used the shorter post title; marketplace is noindex.
+
+**PR 14 checklist addition:** set `NEXT_PUBLIC_SITE_URL=https://rotta.mt` in Vercel production before the DNS switch, or robots stays `Disallow: /`, canonicals point at the alias and GA4 stays off.
+
+Other open to-dos: rotate the legacy Supabase `eyJ` secret for a new-style secret and update local/Vercel env safely; add Cloudflare Turnstile to Add Event only if spam appears. Newsletter is last priority. PR 14 requires final migration sync and explicit DNS approval from Mike; rotta.mt currently remains on WordPress.

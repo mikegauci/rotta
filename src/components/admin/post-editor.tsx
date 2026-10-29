@@ -196,9 +196,13 @@ export function PostEditor({
               onChange={(e) =>
                 update({ seo: { ...post.seo, title: e.target.value } })
               }
-              placeholder={post.title}
+              placeholder={`${post.title} - Rotta`}
               className={field}
             />
+            <span className="text-muted text-xs">
+              The full browser title. Leave empty for “{post.title || "Title"} -
+              Rotta”.
+            </span>
           </label>
           <label className="block">
             <span className="mb-1 flex justify-between text-sm font-semibold">

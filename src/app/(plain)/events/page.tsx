@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -17,12 +16,11 @@ import {
 } from "@/lib/events";
 import { formatPrice } from "@/lib/format";
 import { mediaUrl } from "@/lib/media";
+import { codePageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Events",
-  description:
-    "Car meets, shows and motoring events around Malta and Gozo: upcoming events and the full calendar.",
-};
+export function generateMetadata() {
+  return codePageMetadata("events", "Events");
+}
 
 const heading =
   "text-heading mb-5 pt-[54px] pb-[11px] text-[28px] leading-[28px] font-bold";
