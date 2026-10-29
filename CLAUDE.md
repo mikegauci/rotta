@@ -56,7 +56,11 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Next.js 16: middleware is `src/proxy.ts`; `cacheComponents` is on. Read `node_modules/next/dist/docs/` before using unfamiliar APIs (see AGENTS.md).
 - Supabase clients: `@/lib/supabase/server` (Server Components, Route Handlers, Server Actions), `@/lib/supabase/client` (Client Components). Env is read through `@/lib/env`.
 - DB changes are SQL files in `supabase/migrations/` (timestamped), applied with the Supabase connector. No Supabase CLI dependency.
-- One PR per plan item, branch `pr/NN-name`.
+- Route groups pick the header: `src/app/(hero)/` = transparent header over a hero (home, directory, directory search, watch, marketplace, contact, my-business, login); `src/app/(plain)/` = solid white header (events, shop, cart, checkout, posts, directory detail, legal). Both use `SiteShell`.
+- Design tokens live in `src/app/globals.css` (`brand` #f1be58, `ink` #191919, `body` #3a3a3a...). Use them instead of raw hex values. Desktop menu breakpoint is 922px (Astra's).
+- `<NewsletterSignup />` is opt-in per page (home, directory, directory detail, watch, blog, contact).
+- Marketplace is excluded from `primaryNav` (header and footer menus).
+- One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
 
 ## Product decisions
 
@@ -96,4 +100,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 ## Status
 
 - [ ] Exports received
-- [ ] PR 1 Foundation (in review)
+- [x] PR 1 Foundation
+- [ ] PR 2 Design system and layout (in review)
