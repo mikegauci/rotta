@@ -49,6 +49,12 @@ export default async function DirectoryAdminPage({
           </div>
         }
       />
+      <Link
+        href="/admin/tools/?view=bulk&table=businesses"
+        className="mb-4 inline-block text-sm underline"
+      >
+        Bulk edit directory →
+      </Link>
       <form className="mb-6 flex flex-wrap gap-3">
         <input
           name="q"

@@ -31,7 +31,8 @@ const sections: { title: string; items: Item[] }[] = [
     items: [
       { label: "Media", href: "/admin/media/", ready: true },
       { label: "Users", href: "/admin/users/", ready: true },
-      { label: "Redirects", href: "/admin/redirects/", ready: false },
+      { label: "Redirects", href: "/admin/redirects/", ready: true },
+      { label: "CMS tools", href: "/admin/tools/", ready: true },
     ],
   },
 ];

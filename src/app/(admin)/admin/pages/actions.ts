@@ -1,4 +1,5 @@
 "use server";
+import { env } from "@/lib/env";
 import { revalidatePath, updateTag } from "next/cache";
 import { assertAdmin } from "@/lib/auth/admin";
 import { RESERVED_SLUGS, slugify } from "@/lib/slug";
@@ -85,9 +86,39 @@ export async function savePage(
   if (input.contentFields && PAGE_FIELDS[path]) {
     const fields: Record<string, string> = {};
     for (const key of Object.keys(PAGE_FIELDS[path])) {
-      const value = input.contentFields[key];
+      const value = input.contentFields[key] ?? PAGE_FIELDS[path][key].value;
       if (typeof value !== "string" || value.length > 5000)
         return { error: "Page text must be under 5,000 characters per field." };
+      if (key === "videoId" && !/^[a-zA-Z0-9_-]{11}$/.test(value))
+        return { error: "Enter the 11-character YouTube video ID." };
+      if (key.endsWith("Url") && !/^\/(?!\/)[^\s]*$/.test(value))
+        return { error: "Story URL must be a path on this site." };
+      if (
+        ["storyImage", "heroImage"].includes(key) &&
+        (!value || /[\x00-\x1f:?#]/.test(value) || value.startsWith("/"))
+      )
+        return { error: "Select an image from the media library." };
+      if (
+        key === "homeOrder" &&
+        value.split(",").sort().join(",") !== "directory,events,intro,shop"
+      )
+        return { error: "Every homepage section must appear exactly once." };
+      if (key === "heroMode" && !["video", "image"].includes(value))
+        return { error: "Choose a video or image hero." };
+      if (
+        key === "heroVideo" &&
+        !(
+          /^\/(?!\/)[^\s]*\.mp4$/.test(value) ||
+          (value.startsWith(
+            env.supabaseUrl + "/storage/v1/object/public/media/",
+          ) &&
+            /\.mp4$/.test(value))
+        )
+      )
+        return {
+          error:
+            "Use a local MP4 path or a public MP4 URL from the media library.",
+        };
       fields[key] = value;
     }
     seo.content_fields = fields;
