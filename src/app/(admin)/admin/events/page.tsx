@@ -1,3 +1,4 @@
+import { AdminThumbnail } from "@/components/admin/thumbnail";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -23,7 +24,9 @@ export default async function EventsAdminPage({
   const db = await createClient();
   let query = db
     .from("events")
-    .select("id, slug, title, location, starts_on, ends_on, status")
+    .select(
+      "id, slug, title, location, starts_on, ends_on, status, thumbnail:media!events_poster_media_id_fkey(path, alt)",
+    )
     .limit(500);
   if (view === "draft")
     query = query
@@ -94,6 +97,9 @@ export default async function EventsAdminPage({
         <table className="w-full text-left text-sm">
           <thead className="text-muted border-b border-[#eee] text-xs uppercase">
             <tr>
+              <th className="w-20 px-4 py-3">
+                <span className="sr-only">Thumbnail</span>
+              </th>
               <th className="px-4 py-3 font-semibold">Event</th>
               <th className="px-4 py-3 font-semibold">Date</th>
               <th className="px-4 py-3 font-semibold">Status</th>
@@ -105,6 +111,9 @@ export default async function EventsAdminPage({
                 key={e.id}
                 className="border-b border-[#f3f3f3] last:border-0"
               >
+                <td className="px-4 py-3">
+                  <AdminThumbnail image={e.thumbnail} />
+                </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/events/${e.id}/`}
@@ -137,7 +146,7 @@ export default async function EventsAdminPage({
             ))}
             {events?.length === 0 && (
               <tr>
-                <td colSpan={3} className="text-muted px-4 py-8 text-center">
+                <td colSpan={4} className="text-muted px-4 py-8 text-center">
                   No events found.
                 </td>
               </tr>

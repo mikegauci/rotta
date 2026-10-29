@@ -1,3 +1,5 @@
+import { SearchBox } from "@/components/directory/search-box";
+import { ManagedPageContent } from "@/components/managed-page-content";
 import Image from "next/image";
 import Link from "next/link";
 import { CategoryCarousel } from "@/components/directory/category-carousel";
@@ -29,7 +31,16 @@ export default async function DirectoryPage() {
 
   return (
     <>
-      <DirectoryHero withSearch />
+      <ManagedPageContent
+        path="directory"
+        after={
+          <div className="mx-auto max-w-[1140px] px-5 py-8">
+            <SearchBox size="large" />
+          </div>
+        }
+      >
+        <DirectoryHero withSearch />
+      </ManagedPageContent>
 
       <section className="py-5">
         <div className="mx-auto max-w-[1400px]">
