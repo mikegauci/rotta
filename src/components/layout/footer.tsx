@@ -1,9 +1,10 @@
+import { getSiteSettings } from "@/lib/site-settings";
 import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
 import { Container } from "@/components/layout/container";
-import { primaryNav, socialLinks } from "@/lib/navigation";
+import { siteNavigation, socialLinks } from "@/lib/navigation";
 
 const socialIcons = {
   Facebook: FaFacebook,
@@ -14,7 +15,8 @@ const socialIcons = {
 
 export type FooterPost = { title: string; href: string };
 
-export function Footer({ recentPosts }: { recentPosts: FooterPost[] }) {
+export async function Footer({ recentPosts }: { recentPosts: FooterPost[] }) {
+  const settings = await getSiteSettings();
   return (
     <footer className="bg-ink text-white">
       <div className="py-[70px]">
@@ -29,14 +31,22 @@ export function Footer({ recentPosts }: { recentPosts: FooterPost[] }) {
                 className="mb-[23px] h-auto w-[110px]"
               />
               <p>
-                Celebrating the local automotive culture by ‘Sharing a Passion’
-                for art in motion.
+                {settings.footerText ||
+                  "Celebrating the local automotive culture by ‘Sharing a Passion’ for art in motion."}
               </p>
+              {settings.contactEmail && (
+                <p className="mt-3">
+                  <a href={`mailto:${settings.contactEmail}`}>
+                    {settings.contactEmail}
+                  </a>
+                </p>
+              )}
+              {settings.phone && <p>{settings.phone}</p>}
             </div>
 
             <FooterColumn title="Quick Links">
               <ul>
-                {primaryNav.map((item) => (
+                {siteNavigation(settings.navigation).map((item) => (
                   <li key={item.href}>
                     <FooterLink href={item.href}>{item.label}</FooterLink>
                   </li>
@@ -61,7 +71,7 @@ export function Footer({ recentPosts }: { recentPosts: FooterPost[] }) {
                   return (
                     <a
                       key={label}
-                      href={href}
+                      href={settings[label] || href}
                       aria-label={label}
                       className="text-footer hover:text-brand mr-2 transition-colors"
                     >

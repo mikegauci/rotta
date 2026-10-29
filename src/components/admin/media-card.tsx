@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -33,6 +34,12 @@ export function MediaCard({ item }: { item: Tables<"media"> }) {
           </span>
         )}
       </div>
+      <Link
+        href={`/admin/tools/media/${item.id}/`}
+        className="block px-3 pt-3 text-xs underline"
+      >
+        View file usage
+      </Link>
       <figcaption className="space-y-2 p-3 text-xs">
         <p className="text-ink truncate font-semibold" title={item.file_name}>
           {item.file_name}

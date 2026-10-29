@@ -29,3 +29,14 @@ export function isActive(pathname: string, href: string) {
     ? path === "/"
     : path === target || path.startsWith(`${target}/`);
 }
+
+export function siteNavigation(lines?: string): NavItem[] {
+  const items = (lines || "")
+    .split("\n")
+    .map((line) => {
+      const [label, href] = line.split("|").map((s) => s.trim());
+      return { label, href };
+    })
+    .filter((item) => item.label && /^\/(?!\/)[^\s]*$/.test(item.href));
+  return items.length ? items : primaryNav;
+}

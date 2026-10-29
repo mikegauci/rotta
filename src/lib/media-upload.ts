@@ -42,7 +42,8 @@ export async function uploadFiles(
   const supabase = createClient();
   const result: UploadResult = { uploaded: [], failed: [] };
 
-  for (const [i, file] of files.entries()) {
+  for (const [i, original] of files.entries()) {
+    const file = await optimiseImage(original);
     onProgress?.(i, files.length);
     const { base, ext } = slugify(file.name);
     const now = new Date();
@@ -71,4 +72,34 @@ export async function uploadFiles(
     else result.uploaded.push({ id: recorded.id, path, fileName: file.name });
   }
   return result;
+}
+
+// Keep animated/vector files unchanged. Only JPEG/PNG can be safely flattened.
+async function optimiseImage(file: File): Promise<File> {
+  if (!["image/jpeg", "image/png"].includes(file.type)) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context) {
+      bitmap.close();
+      return file;
+    }
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", 0.8),
+    );
+    if (!blob || blob.type !== "image/webp" || blob.size >= file.size)
+      return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", {
+      type: "image/webp",
+      lastModified: file.lastModified,
+    });
+  } catch {
+    return file;
+  }
 }

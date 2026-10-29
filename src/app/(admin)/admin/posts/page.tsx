@@ -54,6 +54,12 @@ export default async function PostsPage({
           </Link>
         }
       />
+      <Link
+        href="/admin/tools/?view=bulk&table=posts"
+        className="mb-4 inline-block text-sm underline"
+      >
+        Bulk edit posts →
+      </Link>
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <nav className="flex gap-1 text-sm" aria-label="Filter">
           {filters.map((f) => (

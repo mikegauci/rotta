@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDraft } from "@/components/admin/local-draft";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -123,6 +124,19 @@ export function PostEditor({
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
       <div className="min-w-0 space-y-6">
+        <LocalDraft
+          draftKey={`rotta:post-editor.tsx:${initial.id || "new-post"}`}
+          value={post}
+          onRestore={update}
+        />
+        {initial.id && (
+          <Link
+            href={`/admin/tools/?view=history&record=${initial.id}`}
+            className="block text-sm underline"
+          >
+            View version history
+          </Link>
+        )}
         <div className={panel}>
           <input
             value={post.title}

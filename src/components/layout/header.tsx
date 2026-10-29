@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Container } from "@/components/layout/container";
 import { CartLink } from "@/components/layout/cart-link";
-import { isActive, primaryNav } from "@/lib/navigation";
+import { isActive, primaryNav, type NavItem } from "@/lib/navigation";
 
 export type HeaderVariant = "transparent" | "solid";
 
@@ -14,24 +14,48 @@ export type HeaderVariant = "transparent" | "solid";
 // Solid: white bar with the dark logo (events, shop, posts, legal pages...).
 // The URL is runtime data, so the prerendered shell shows the header without
 // an active link and the highlighted version streams in.
-export function Header({ variant }: { variant: HeaderVariant }) {
+export function Header({
+  variant,
+  navigation = primaryNav,
+}: {
+  variant: HeaderVariant;
+  navigation?: NavItem[];
+}) {
   return (
-    <Suspense fallback={<HeaderView variant={variant} pathname={null} />}>
-      <HeaderWithPath variant={variant} />
+    <Suspense
+      fallback={
+        <HeaderView variant={variant} navigation={navigation} pathname={null} />
+      }
+    >
+      <HeaderWithPath variant={variant} navigation={navigation} />
     </Suspense>
   );
 }
 
-function HeaderWithPath({ variant }: { variant: HeaderVariant }) {
-  return <HeaderView variant={variant} pathname={usePathname()} />;
+function HeaderWithPath({
+  variant,
+  navigation,
+}: {
+  variant: HeaderVariant;
+  navigation: NavItem[];
+}) {
+  return (
+    <HeaderView
+      variant={variant}
+      navigation={navigation}
+      pathname={usePathname()}
+    />
+  );
 }
 
 function HeaderView({
   variant,
   pathname,
+  navigation,
 }: {
   variant: HeaderVariant;
   pathname: string | null;
+  navigation: NavItem[];
 }) {
   // Remember which page the menu was opened on so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null);
@@ -75,7 +99,7 @@ function HeaderView({
             className="desk:flex ml-auto hidden items-center"
           >
             <ul className="flex items-center">
-              {primaryNav.map((item) => {
+              {navigation.map((item) => {
                 const active = pathname ? isActive(pathname, item.href) : false;
                 return (
                   <li key={item.href}>
@@ -123,7 +147,7 @@ function HeaderView({
           className="desk:hidden bg-[#f9f9f9]"
         >
           <ul>
-            {primaryNav.map((item) => {
+            {navigation.map((item) => {
               const active = pathname ? isActive(pathname, item.href) : false;
               return (
                 <li key={item.href}>

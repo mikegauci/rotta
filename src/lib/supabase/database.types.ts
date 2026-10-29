@@ -15,6 +15,28 @@ export type Database = {
   };
   public: {
     Tables: {
+      content_history: {
+        Row: {
+          id: string;
+          created_at: string;
+          actor_id: string | null;
+          entity: string;
+          record_key: string;
+          operation: string;
+          before_data: Json | null;
+          after_data: Json | null;
+        };
+        Insert: {
+          entity: string;
+          record_key: string;
+          operation: string;
+          before_data?: Json | null;
+          after_data?: Json | null;
+        };
+        Update: { before_data?: Json | null };
+        Relationships: [];
+      };
+
       shop_checkouts: {
         Row: {
           id: string;
@@ -1367,6 +1389,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_bulk_status: {
+        Args: {
+          target_table: string;
+          target_ids: string[];
+          new_status: "draft" | "published";
+        };
+        Returns: number;
+      };
+
       admin_save_product: {
         Args: {
           gallery: string[];

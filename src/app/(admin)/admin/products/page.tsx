@@ -23,6 +23,12 @@ export default async function Page() {
           </Link>
         }
       />
+      <Link
+        href="/admin/tools/?view=bulk&table=products"
+        className="mb-4 inline-block text-sm underline"
+      >
+        Bulk edit products →
+      </Link>
       <div className="overflow-auto rounded-lg bg-white p-5">
         <table className="w-full text-left text-sm">
           <thead>

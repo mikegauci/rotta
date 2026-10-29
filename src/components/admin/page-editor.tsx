@@ -1,5 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
+import { LocalDraft } from "@/components/admin/local-draft";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { savePage, type PageInput } from "@/app/(admin)/admin/pages/actions";
@@ -53,6 +54,22 @@ export function PageEditor({
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_300px]">
       <div className="min-w-0 space-y-6">
+        <LocalDraft
+          draftKey={`rotta:page-editor.tsx:${initial.id || "new-page"}`}
+          value={{ page, hero }}
+          onRestore={(draft) => {
+            setPage(draft.page);
+            setHero(draft.hero);
+          }}
+        />
+        {initial.id && (
+          <Link
+            href={`/admin/tools/?view=history&record=${initial.id}`}
+            className="block text-sm underline"
+          >
+            View version history
+          </Link>
+        )}
         <div className="space-y-4 rounded-lg bg-white p-5">
           <label className="block text-sm font-semibold">
             Title
@@ -88,22 +105,105 @@ export function PageEditor({
               Edit the original layout’s text here. Line breaks are preserved.
             </p>
             {Object.entries(PAGE_FIELDS[page.path]).map(([key, config]) => (
-              <label key={key} className="block text-sm">
+              <div key={key} className="block text-sm">
                 {config.label}
-                <textarea
-                  rows={2}
-                  className={field}
-                  value={page.contentFields?.[key] ?? config.value}
-                  onChange={(e) =>
-                    update({
-                      contentFields: {
-                        ...page.contentFields,
-                        [key]: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </label>
+                {config.kind === "select" ? (
+                  <select
+                    className={field}
+                    aria-label={config.label}
+                    value={page.contentFields?.[key] ?? config.value}
+                    onChange={(e) =>
+                      update({
+                        contentFields: {
+                          ...page.contentFields,
+                          [key]: e.target.value,
+                        },
+                      })
+                    }
+                  >
+                    <option value="video">Video</option>
+                    <option value="image">Image</option>
+                  </select>
+                ) : config.kind === "image" ? (
+                  <MediaField
+                    label={config.label}
+                    value={{
+                      id: key,
+                      path: page.contentFields?.[key] ?? config.value,
+                      alt: "",
+                      width: null,
+                      height: null,
+                    }}
+                    onChange={(image) => {
+                      if (image)
+                        update({
+                          contentFields: {
+                            ...page.contentFields,
+                            [key]: image.path,
+                          },
+                        });
+                    }}
+                  />
+                ) : config.kind === "order" ? (
+                  <div className="space-y-2">
+                    {(page.contentFields?.[key] ?? config.value)
+                      .split(",")
+                      .map((name, index, order) => (
+                        <div
+                          key={name}
+                          className="flex items-center gap-3 rounded border p-2"
+                        >
+                          <span className="flex-1 capitalize">
+                            {name === "intro"
+                              ? "Hero and featured stories"
+                              : name}
+                          </span>
+                          {[-1, 1].map((by) => (
+                            <button
+                              key={by}
+                              type="button"
+                              disabled={
+                                index + by < 0 || index + by >= order.length
+                              }
+                              className="rounded border px-3 disabled:opacity-30"
+                              aria-label={`Move ${name} ${by < 0 ? "up" : "down"}`}
+                              onClick={() => {
+                                const next = [...order];
+                                [next[index], next[index + by]] = [
+                                  next[index + by],
+                                  next[index],
+                                ];
+                                update({
+                                  contentFields: {
+                                    ...page.contentFields,
+                                    [key]: next.join(","),
+                                  },
+                                });
+                              }}
+                            >
+                              {by < 0 ? "↑" : "↓"}
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <textarea
+                    rows={2}
+                    aria-label={config.label}
+                    className={field}
+                    value={page.contentFields?.[key] ?? config.value}
+                    onChange={(e) =>
+                      update({
+                        contentFields: {
+                          ...page.contentFields,
+                          [key]: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                )}
+              </div>
             ))}
           </div>
         )}

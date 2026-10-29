@@ -34,6 +34,12 @@ export default async function MarketplaceAdminPage() {
           </Link>
         }
       />
+      <Link
+        href="/admin/tools/?view=bulk&table=vehicles"
+        className="mb-4 inline-block text-sm underline"
+      >
+        Bulk edit marketplace →
+      </Link>
       {error && (
         <p className="text-coral">Could not load vehicles: {error.message}</p>
       )}

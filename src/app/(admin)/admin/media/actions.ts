@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { assertAdmin } from "@/lib/auth/admin";
+import { mediaUsage } from "@/lib/admin/inventory";
 import { MEDIA_BUCKET } from "@/lib/media";
 import { createClient } from "@/lib/supabase/server";
 
@@ -54,6 +55,17 @@ export async function updateAlt(id: string, alt: string) {
 export async function deleteMedia(id: string) {
   await assertAdmin();
   const supabase = await createClient();
+  const existing = await supabase
+    .from("media")
+    .select("path")
+    .eq("id", id)
+    .single();
+  if (existing.error) return { error: existing.error.message };
+  const usage = await mediaUsage(id, existing.data.path);
+  if (usage.length)
+    return {
+      error: `This file is used by ${usage.length} content records. Remove those references first.`,
+    };
   const { data: row, error } = await supabase
     .from("media")
     .delete()

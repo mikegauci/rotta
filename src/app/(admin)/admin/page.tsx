@@ -47,6 +47,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     const result = await db
       .from("orders")
       .select("id,created_at,status,total_cents,currency")
+      .eq("livemode", true)
       .gte("created_at", `${since}T00:00:00Z`)
       .order("created_at")
       .order("id")
@@ -87,7 +88,12 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
         description={`Welcome back, ${user?.username ?? user?.email}.`}
       />
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">Shop analytics</h2>
+        <div>
+          <h2 className="text-xl font-bold">Shop analytics</h2>
+          <Link href="/admin/tools/?view=reports" className="text-sm underline">
+            Detailed sales reports →
+          </Link>
+        </div>
         <nav aria-label="Sales period" className="flex gap-2">
           {[7, 30, 90].map((n) => (
             <Link
