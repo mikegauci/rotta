@@ -4,6 +4,26 @@
 import type { Context } from "../lib/context.ts";
 import { decodeEntities, slugify } from "../lib/wp.ts";
 
+// The artwork and paragraph above each carousel on the Watch page.
+function seriesIntro(content: string, sliderId: string) {
+  const at = content.search(
+    new RegExp(`slide-anything id=["']${sliderId}["']`),
+  );
+  const before = content.slice(0, at);
+  const chunk = before.slice(before.lastIndexOf("wp:uagb/section"));
+  const image = [
+    ...chunk.matchAll(/wp-content\/uploads\/([^"'\s]+\.(?:png|jpe?g|webp))/g),
+  ].pop()?.[1];
+  const text = [...chunk.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)].pop()?.[1];
+  return {
+    // "stories-title-1-300x80.png" -> the full-size original
+    image: image?.replace(/-\d+x\d+(\.\w+)$/, "$1") ?? null,
+    description: text
+      ? decodeEntities(text.replace(/<[^>]+>/g, "")).trim()
+      : "",
+  };
+}
+
 async function youtubeTitle(id: string): Promise<string | null> {
   try {
     const res = await fetch(
@@ -37,12 +57,17 @@ export async function importVideos(ctx: Context) {
     if (!slider) continue;
     const seriesId = ctx.id("video_series", sliderId);
     const title = decodeEntities(slider.post_title!);
+    const intro = seriesIntro(watch!.post_content!, sliderId);
     series.push({
       id: seriesId,
       wp_id: Number(sliderId),
       slug: slugify(title),
       title,
       sort_order: index,
+      description: intro.description,
+      title_media_id: intro.image
+        ? (ctx.media.byUrl(intro.image)?.id ?? null)
+        : null,
     });
 
     const slides = ctx.wp.all(
@@ -78,6 +103,9 @@ export async function importVideos(ctx: Context) {
       status: "published" as const,
     });
   }
+
+  // Hero background video (the page code points at its Storage path).
+  ctx.media.byUrl("2021/01/rotta-video-bg.mp4");
 
   ctx.upsert("video_series", series, "id");
   ctx.upsert("videos", rows, "id");

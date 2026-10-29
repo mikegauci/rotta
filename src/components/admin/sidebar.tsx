@@ -15,8 +15,8 @@ const sections: { title: string; items: Item[] }[] = [
       { label: "Blog posts", href: "/admin/posts/", ready: true },
       { label: "Directory", href: "/admin/directory/", ready: true },
       { label: "Events", href: "/admin/events/", ready: true },
-      { label: "Videos", href: "/admin/videos/", ready: false },
-      { label: "Marketplace", href: "/admin/marketplace/", ready: false },
+      { label: "Videos", href: "/admin/videos/", ready: true },
+      { label: "Marketplace", href: "/admin/marketplace/", ready: true },
     ],
   },
   {

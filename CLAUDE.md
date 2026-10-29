@@ -80,6 +80,8 @@ pnpm format        # prettier (with Tailwind class sorting)
 - Directory data lives in `@/lib/directory` (`getDirectory()` is cached under the `directory` tag; listing pages also use `business:<slug>`). URLs match WordPress: `/directory/`, `/directory/search-results/?vehicles=&era=&services=&region=` (term labels, matched by slug; `region=All` means no filter; `frm_search` is the keyword) and `/directory/<slug>/`. Design images for these pages are in `public/directory/`.
 - Listing writes: `cleanBusiness()` (`@/lib/business-input`) validates both forms; `insertListing()`/`replaceTerms()`/`refreshDirectory()` live in `@/lib/directory-write`. Owners save through `saveMyListing` (logos are shrunk to WebP in the browser and uploaded to `media/business/<uid>/`); admins through `adminSaveListing`, which renames via `admin_update_business()` and adds a 301 for the old address. New owner listings email `EMAIL_ADMIN_TO`.
 - Events data lives in `@/lib/events` (cached under `events` and `event:<slug>`). URLs match WordPress: `/events/`, `/events/?frmcal-month=MM&frmcal-year=YYYY` for the calendar, `/events/<slug>/`. "Upcoming" uses today in Europe/Malta, so that part of the page renders per request. "Previous Events" are three hand-picked shop products (`PREVIOUS_EVENT_PRODUCTS`). The public "Add Event" form (`submitEvent`) writes with the secret key through `createAdminClient()` (`@/lib/supabase/admin`), re-encodes posters with sharp to WebP (max 2000px) under `media/events/`, and uses a honeypot plus a minimum fill time against bots.
+- Watch data lives in `@/lib/watch` (cached under `videos`): each `video_series` is one carousel on `/watch/` (title artwork in `title_media_id`, a description, admin order), with its published `videos` in `sort_order`. Thumbnails come from `img.youtube.com`; the play button opens a youtube-nocookie lightbox. Admins add videos by pasting a YouTube link at `/admin/videos/` (the title comes from YouTube oEmbed). The hero MP4 is in Storage at `wp/2021/01/rotta-video-bg.mp4`.
+- Marketplace data lives in `@/lib/marketplace` (cached under `vehicles` and `vehicle:<slug>`). The old hand-built WordPress pages became a template: `content` is the description, `details` holds the feature icons (`@/lib/vehicle-features`, SVGs in `public/marketplace/icons/`), `seller_details` is one line per row, photos are `vehicle_media`. Every marketplace page is noindex.
 - `<GetInTouch />` (`@/components/get-in-touch`) emails `EMAIL_ADMIN_TO` through `sendContactMessage`.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
@@ -132,4 +134,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [x] PR 7 Blog (public pages)
 - [x] PR 7b Blog admin editor
 - [x] PR 8 Directory (8a public pages, 8b My Business + admin)
-- [ ] PR 9 Events
+- [x] PR 9 Events
+- [x] PR 10 Watch and Marketplace

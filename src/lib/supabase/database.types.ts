@@ -1126,8 +1126,11 @@ export type Database = {
       vehicles: {
         Row: {
           body_type: string;
+          card_title: string;
+          condition: string;
           content: string;
           created_at: string;
+          cta_media_id: string | null;
           details: Json;
           external_url: string;
           id: string;
@@ -1135,6 +1138,7 @@ export type Database = {
           listed_on: string | null;
           listing_status: string;
           price: string;
+          seller_details: string;
           seo: Json;
           slug: string;
           status: Database["public"]["Enums"]["publish_status"];
@@ -1146,8 +1150,11 @@ export type Database = {
         };
         Insert: {
           body_type?: string;
+          card_title?: string;
+          condition?: string;
           content?: string;
           created_at?: string;
+          cta_media_id?: string | null;
           details?: Json;
           external_url?: string;
           id?: string;
@@ -1155,6 +1162,7 @@ export type Database = {
           listed_on?: string | null;
           listing_status?: string;
           price?: string;
+          seller_details?: string;
           seo?: Json;
           slug: string;
           status?: Database["public"]["Enums"]["publish_status"];
@@ -1166,8 +1174,11 @@ export type Database = {
         };
         Update: {
           body_type?: string;
+          card_title?: string;
+          condition?: string;
           content?: string;
           created_at?: string;
+          cta_media_id?: string | null;
           details?: Json;
           external_url?: string;
           id?: string;
@@ -1175,6 +1186,7 @@ export type Database = {
           listed_on?: string | null;
           listing_status?: string;
           price?: string;
+          seller_details?: string;
           seo?: Json;
           slug?: string;
           status?: Database["public"]["Enums"]["publish_status"];
@@ -1185,6 +1197,13 @@ export type Database = {
           year?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "vehicles_cta_media_id_fkey";
+            columns: ["cta_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "vehicles_image_media_id_fkey";
             columns: ["image_media_id"];
@@ -1197,29 +1216,43 @@ export type Database = {
       video_series: {
         Row: {
           created_at: string;
+          description: string;
           id: string;
           slug: string;
           sort_order: number;
           title: string;
+          title_media_id: string | null;
           wp_id: number | null;
         };
         Insert: {
           created_at?: string;
+          description?: string;
           id?: string;
           slug: string;
           sort_order?: number;
           title: string;
+          title_media_id?: string | null;
           wp_id?: number | null;
         };
         Update: {
           created_at?: string;
+          description?: string;
           id?: string;
           slug?: string;
           sort_order?: number;
           title?: string;
+          title_media_id?: string | null;
           wp_id?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "video_series_title_media_id_fkey";
+            columns: ["title_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       videos: {
         Row: {
