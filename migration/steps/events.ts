@@ -46,7 +46,6 @@ export function importEvents(ctx: Context) {
     const endsOn =
       DATE.test(v(F.endDate)) && v(F.endDate) >= startsOn ? v(F.endDate) : null;
 
-    // The poster field holds an attachment id, or a URL on a few old entries.
     // The poster field holds an attachment id (or a URL on old entries);
     // otherwise the event page's featured image is the poster.
     const posterValue = v(F.poster);
