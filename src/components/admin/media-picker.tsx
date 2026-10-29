@@ -39,6 +39,7 @@ export function MediaPicker({
       .select("id, path, width, height, alt")
       .like("mime_type", "image/%")
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(max + 1);
     if (q) query = query.ilike("file_name", `%${q}%`);
     const { data, error } = await query;

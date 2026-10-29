@@ -1,3 +1,4 @@
+import { AdminThumbnail } from "@/components/admin/thumbnail";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -14,7 +15,9 @@ export default async function MarketplaceAdminPage() {
   const db = await createClient();
   const { data: vehicles, error } = await db
     .from("vehicles")
-    .select("id, slug, title, price, listing_status, status_color, status")
+    .select(
+      "id, slug, title, price, listing_status, status_color, status, thumbnail:media!vehicles_image_media_id_fkey(path, alt)",
+    )
     .order("listed_on", { ascending: false, nullsFirst: false });
 
   return (
@@ -38,6 +41,9 @@ export default async function MarketplaceAdminPage() {
         <table className="w-full text-left text-sm">
           <thead className="text-muted border-b border-[#eee] text-xs uppercase">
             <tr>
+              <th className="w-20 px-4 py-3">
+                <span className="sr-only">Thumbnail</span>
+              </th>
               <th className="px-4 py-3 font-semibold">Vehicle</th>
               <th className="px-4 py-3 font-semibold">Price</th>
               <th className="px-4 py-3 font-semibold">Sale status</th>
@@ -50,6 +56,9 @@ export default async function MarketplaceAdminPage() {
                 key={v.id}
                 className="border-b border-[#f3f3f3] last:border-0"
               >
+                <td className="px-4 py-3">
+                  <AdminThumbnail image={v.thumbnail} />
+                </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/marketplace/${v.id}/`}
@@ -81,7 +90,7 @@ export default async function MarketplaceAdminPage() {
             ))}
             {vehicles?.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-muted px-4 py-8 text-center">
+                <td colSpan={5} className="text-muted px-4 py-8 text-center">
                   No vehicles yet.
                 </td>
               </tr>

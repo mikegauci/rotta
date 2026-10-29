@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { codePageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BusinessForm } from "@/components/directory/business-form";
@@ -12,10 +12,9 @@ import {
 } from "@/lib/business-form-data";
 import { saveMyListing } from "./actions";
 
-export const metadata: Metadata = {
-  title: "My Business",
-  robots: { index: false },
-};
+export function generateMetadata() {
+  return codePageMetadata("my-business", "My Business", { noindex: true });
+}
 
 // Reads the session on every request, so skip instant-navigation validation.
 export const instant = false;

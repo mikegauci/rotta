@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { codePageMetadata } from "@/lib/seo";
-import { getStaticPage } from "@/lib/static-pages";
+import { PageHero } from "@/components/page-hero";
+import { getPageImage, getStaticPage } from "@/lib/static-pages";
 
 export function generateMetadata() {
   return codePageMetadata("privacy-policy", "Privacy Policy");
@@ -25,13 +26,21 @@ export default async function PrivacyPolicy() {
       )}</style>`,
   );
   return (
-    <Container className="py-16">
-      {/* The imported policy starts with its own "PRIVACY NOTICE" heading. */}
-      <h1 className="sr-only">{page.title}</h1>
-      <div
-        className="post-content privacy-content"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
-    </Container>
+    <>
+      {page.hero_media_id && (
+        <PageHero
+          image={await getPageImage(page.hero_media_id)}
+          title={page.title}
+        />
+      )}
+      <Container className="py-16">
+        {/* The imported policy starts with its own "PRIVACY NOTICE" heading. */}
+        {!page.hero_media_id && <h1 className="sr-only">{page.title}</h1>}
+        <div
+          className="post-content privacy-content"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      </Container>
+    </>
   );
 }
