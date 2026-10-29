@@ -61,6 +61,9 @@ pnpm format        # prettier (with Tailwind class sorting)
 - `<NewsletterSignup />` is opt-in per page (home, directory, directory detail, watch, blog, contact).
 - Auth: `getCurrentUser()` / `requireUser()` / `requireRole()` in `@/lib/auth/session` (server-only). Anything that reads the session must sit inside `<Suspense>`, and routes that gate on it set `export const instant = false`. Form actions are in `@/lib/auth/actions`.
 - Roles are in `profiles.role` (`admin`, `business_owner`, `customer`). Users can never change their own role; only `public.set_user_role()` (admin-checked) can. Registration creates `business_owner` accounts; shop checkout will create `customer` accounts.
+- Admin: everything under `src/app/(admin)/admin/` is gated by the layout, and every Server Action calls `assertAdmin()` from `@/lib/auth/admin` itself. Enable a section in `src/components/admin/sidebar.tsx` when it ships.
+- Media: files go to the public `media` Storage bucket (admin-only writes via RLS) with a row in `public.media`. Use `mediaUrl(path)` from `@/lib/media`.
+- Forms with `useActionState`: React resets the form after an action, so return the submitted values in `fields` and pass them as `defaultValue`.
 - `trailingSlash: true` keeps WordPress-style URLs. Always write internal links with a trailing slash.
 - Marketplace is excluded from `primaryNav` (header and footer menus).
 - One PR per plan item, branch `pr/NN-name`, squash-merged with auto-merge on.
@@ -105,4 +108,5 @@ Each PR is small and reviewable. Pages that need data are built against seed dat
 - [ ] Exports received
 - [x] PR 1 Foundation
 - [x] PR 2 Design system and layout
-- [ ] PR 3 Auth and roles (in review)
+- [x] PR 3 Auth and roles
+- [ ] PR 6 Admin CMS shell (in review)

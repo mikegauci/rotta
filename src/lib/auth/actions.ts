@@ -6,7 +6,14 @@ import { env } from "@/lib/env";
 import { safeNext } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
 
-export type FormState = { error?: string; message?: string } | undefined;
+export type FormState =
+  | {
+      error?: string;
+      message?: string;
+      // Echoed back so inputs keep their values (React resets forms after an action).
+      fields?: Record<string, string>;
+    }
+  | undefined;
 
 async function origin() {
   return (await headers()).get("origin") ?? env.siteUrl;
@@ -22,11 +29,13 @@ export async function signIn(
 ): Promise<FormState> {
   const email = field(formData, "email");
   const password = String(formData.get("password") ?? "");
-  if (!email || !password) return { error: "Enter your email and password." };
+  const fields = { email };
+  if (!email || !password)
+    return { error: "Enter your email and password.", fields };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Incorrect email or password." };
+  if (error) return { error: "Incorrect email or password.", fields };
 
   redirect(safeNext(formData.get("next"), "/my-business/"));
 }
@@ -40,25 +49,31 @@ export async function signUp(
   const username = field(formData, "username").toLowerCase();
   const email = field(formData, "email");
   const password = String(formData.get("password") ?? "");
+  const fields = {
+    first_name: firstName,
+    last_name: lastName,
+    username,
+    email,
+    email_confirm: field(formData, "email_confirm"),
+  };
+  const fail = (error: string) => ({ error, fields });
 
   if (!firstName || !lastName || !username || !email || !password)
-    return { error: "Please fill in all required fields." };
+    return fail("Please fill in all required fields.");
   if (!/^[a-z0-9]{3,32}$/.test(username))
-    return {
-      error: "Only lower case letters (a-z) and numbers (0-9) are allowed.",
-    };
+    return fail("Only lower case letters (a-z) and numbers (0-9) are allowed.");
   if (email.toLowerCase() !== field(formData, "email_confirm").toLowerCase())
-    return { error: "Email addresses do not match." };
+    return fail("Email addresses do not match.");
   if (password !== String(formData.get("password_confirm") ?? ""))
-    return { error: "Passwords do not match." };
+    return fail("Passwords do not match.");
   if (password.length < 8)
-    return { error: "Password must be at least 8 characters." };
+    return fail("Password must be at least 8 characters.");
 
   const supabase = await createClient();
   const { data: available } = await supabase.rpc("username_available", {
     candidate: username,
   });
-  if (available === false) return { error: "That username is already taken." };
+  if (available === false) return fail("That username is already taken.");
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -73,7 +88,7 @@ export async function signUp(
       },
     },
   });
-  if (error) return { error: error.message };
+  if (error) return fail(error.message);
 
   return { message: "Check your email to confirm your account." };
 }

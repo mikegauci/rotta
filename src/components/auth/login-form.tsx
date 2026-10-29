@@ -15,11 +15,16 @@ export function LoginForm() {
       : undefined;
 
   return (
-    <form action={action} className="mt-12 space-y-[30px]">
+    <form
+      key={state?.fields?.email}
+      action={action}
+      className="mt-12 space-y-[30px]"
+    >
       <input type="hidden" name="next" value={params.get("next") ?? ""} />
       <AuthInput
         label="Email"
         name="email"
+        defaultValue={state?.fields?.email}
         type="email"
         autoComplete="email"
         required

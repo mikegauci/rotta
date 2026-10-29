@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AdminSidebar } from "@/components/admin/sidebar";
 import { signOut } from "@/lib/auth/actions";
 import { requireRole } from "@/lib/auth/session";
 
@@ -12,28 +14,52 @@ export const metadata: Metadata = {
 // Reads the session on every request, so skip instant-navigation validation.
 export const instant = false;
 
-// Admin area shell. The full CMS navigation comes with PR 6.
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-[#f5f5f5]">
-      <header className="bg-ink flex items-center justify-between px-6 py-4 text-white">
-        <Link href="/admin/" className="font-black">
-          Rotta Admin
+    <div className="text-body flex min-h-full flex-1 bg-[#f5f5f5]">
+      <aside className="bg-ink sticky top-0 hidden h-dvh w-60 shrink-0 flex-col p-4 text-white md:flex">
+        <Link href="/admin/" className="mb-8 flex items-center gap-2 px-3">
+          <Image
+            src="/brand/logo-footer.png"
+            alt="Rotta"
+            width={600}
+            height={196}
+            className="h-auto w-20"
+          />
+          <span className="text-footer-muted text-xs">Admin</span>
         </Link>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="text-footer hover:text-brand text-sm"
-          >
-            Log out
-          </button>
-        </form>
-      </header>
-      <main className="flex-1 p-6">
-        <Suspense fallback={<p>Loading…</p>}>
-          <AdminOnly>{children}</AdminOnly>
-        </Suspense>
-      </main>
+        <AdminSidebar />
+        <div className="mt-auto space-y-2 px-3 text-sm">
+          <Link href="/" className="text-footer hover:text-brand block">
+            View site
+          </Link>
+          <form action={signOut}>
+            <button type="submit" className="text-footer hover:text-brand">
+              Log out
+            </button>
+          </form>
+        </div>
+      </aside>
+      <div className="min-w-0 flex-1">
+        <div className="bg-ink flex items-center justify-between px-4 py-3 md:hidden">
+          <Link href="/admin/" className="text-sm font-black text-white">
+            Rotta Admin
+          </Link>
+          <details className="relative">
+            <summary className="text-footer cursor-pointer text-sm">
+              Menu
+            </summary>
+            <div className="bg-ink absolute right-0 z-20 mt-2 w-60 rounded p-4 shadow-lg">
+              <AdminSidebar />
+            </div>
+          </details>
+        </div>
+        <main className="mx-auto max-w-6xl p-6 md:p-10">
+          <Suspense fallback={<p>Loading…</p>}>
+            <AdminOnly>{children}</AdminOnly>
+          </Suspense>
+        </main>
+      </div>
     </div>
   );
 }
