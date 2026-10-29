@@ -1,10 +1,12 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthSection, AuthTitle } from "@/components/auth/auth-section";
+import { codePageMetadata } from "@/lib/seo";
 import { LoginForm } from "@/components/auth/login-form";
 
-export const metadata: Metadata = { title: "Login" };
+export function generateMetadata() {
+  return codePageMetadata("login", "Login");
+}
 
 export default function LoginPage() {
   return (

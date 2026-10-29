@@ -1,13 +1,12 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import { VehicleCard } from "@/components/marketplace/vehicle-card";
 import { getVehicles } from "@/lib/marketplace";
+import { codePageMetadata } from "@/lib/seo";
 
 // Kept but unlinked (not in the menus), so it stays out of search results.
-export const metadata: Metadata = {
-  title: "Marketplace",
-  robots: { index: false },
-};
+export function generateMetadata() {
+  return codePageMetadata("marketplace", "Marketplace", { noindex: true });
+}
 
 export default async function MarketplacePage() {
   const vehicles = await getVehicles();

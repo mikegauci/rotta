@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { VideoCarousel } from "@/components/watch/video-carousel";
 import { mediaUrl } from "@/lib/media";
 import { getWatchSeries, WATCH_HERO_VIDEO } from "@/lib/watch";
+import { codePageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Watch",
-  description:
-    "Watch our latest episodes on some of the best local car stories and garages.",
-};
+export function generateMetadata() {
+  return codePageMetadata("watch", "Watch", {
+    image: "wp/2021/01/stories-title-1.webp",
+  });
+}
 
 export default async function WatchPage() {
   const series = await getWatchSeries();

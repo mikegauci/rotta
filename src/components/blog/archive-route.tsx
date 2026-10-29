@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFoundMetadata, pageMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Archive } from "@/components/blog/archive";
@@ -56,7 +57,14 @@ export async function archiveMetadata(
   kind: ArchiveKind,
   params: Params,
 ): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, page } = await params;
   const archive = await getArchive(kind, slug);
-  return archive ? { title: `${archive.title} Archives` } : {};
+  if (!archive) return notFoundMetadata;
+  // Yoast titles: "Stories Archives - Rotta", "Mike, Author at Rotta".
+  return pageMetadata({
+    name: `${archive.title} Archives`,
+    path: `/${kind}/${slug}/${page && page !== "1" ? `page/${page}/` : ""}`,
+    seo:
+      kind === "author" ? { title: `${archive.title}, Author at Rotta` } : {},
+  });
 }

@@ -1,13 +1,12 @@
-import type { Metadata } from "next";
 import { ContactForm } from "@/components/get-in-touch";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { Container } from "@/components/layout/container";
+import { codePageMetadata } from "@/lib/seo";
 import { mediaUrl } from "@/lib/media";
 
-export const metadata: Metadata = {
-  title: "Contact Us",
-  description: "Leave us a message with any questions you have.",
-};
+export function generateMetadata() {
+  return codePageMetadata("contact-us", "Contact Us");
+}
 
 export default function ContactPage() {
   return (

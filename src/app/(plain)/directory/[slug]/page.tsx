@@ -16,6 +16,7 @@ import {
   type Business,
 } from "@/lib/directory";
 import { mediaUrl } from "@/lib/media";
+import { notFoundMetadata, pageMetadata } from "@/lib/seo";
 
 // Listings live at /directory/<slug>/, as on WordPress.
 export async function generateStaticParams() {
@@ -28,22 +29,20 @@ export async function generateMetadata({
 }: PageProps<"/directory/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const business = await getBusiness(slug);
-  if (!business) return {};
+  if (!business) return notFoundMetadata;
   const description =
     business.seo.description ||
     business.shortDescription ||
     business.description.slice(0, 160) ||
     undefined;
-  return {
-    title: business.seo.title || displayName(business.name),
+  return pageMetadata({
+    name: displayName(business.name),
+    path: `/directory/${slug}/`,
+    seo: business.seo,
     description,
-    robots: business.seo.noindex ? { index: false } : undefined,
-    openGraph: {
-      title: business.name,
-      description,
-      images: business.logo ? [mediaUrl(business.logo.path)] : undefined,
-    },
-  };
+    image: business.logo?.path,
+    type: "article",
+  });
 }
 
 function websiteHref(url: string) {

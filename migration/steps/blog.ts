@@ -4,16 +4,34 @@ import { extractHero } from "../lib/blocks.ts";
 import type { Context } from "../lib/context.ts";
 import { decodeEntities, wpDate } from "../lib/wp.ts";
 
+// Fills in a Yoast title template ("%%title%% %%sep%% %%sitename%%").
+function yoastTitle(template: string, title: string): string {
+  return decodeEntities(template)
+    .replace(/%%title%%/g, title)
+    .replace(/%%sitename%%/g, "Rotta")
+    .replace(/%%sitedesc%%/g, "Rotta | Sharing a Passion")
+    .replace(/%%sep%%/g, "-")
+    .replace(/%%[a-z_]+%%/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// `seo.title` is the full browser title; it is only stored when it differs
+// from the default "<title> - Rotta".
 export function seoFrom(
   ctx: Context,
   meta: Map<string, string> | undefined,
+  pageTitle = "",
 ): { [key: string]: Json } {
   if (!meta) return {};
   const seo: { [key: string]: Json } = {};
-  const title = meta.get("_yoast_wpseo_title");
+  const template = meta.get("_yoast_wpseo_title");
   const description = meta.get("_yoast_wpseo_metadesc");
-  // Yoast titles contain variables like %%sep%%; keep only plain ones.
-  if (title && !title.includes("%%")) seo.title = decodeEntities(title);
+  if (template) {
+    const title = yoastTitle(template, decodeEntities(pageTitle));
+    if (title && title !== `${decodeEntities(pageTitle)} - Rotta`)
+      seo.title = title;
+  }
   if (description && !description.includes("%%"))
     seo.description = decodeEntities(description);
   if (meta.get("_yoast_wpseo_meta-robots-noindex") === "1") seo.noindex = true;
@@ -95,7 +113,7 @@ export function importBlog(ctx: Context, users: Map<string, string>) {
           ? ("published" as const)
           : ("draft" as const),
       published_at: wpDate(p.post_date_gmt, p.post_date),
-      seo: seoFrom(ctx, m),
+      seo: seoFrom(ctx, m, p.post_title ?? ""),
       created_at: wpDate(p.post_date_gmt, p.post_date) ?? undefined,
     };
   });

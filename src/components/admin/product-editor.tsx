@@ -383,10 +383,12 @@ export function ProductEditor({
             <input
               className={field}
               value={p.seo.title ?? ""}
+              placeholder={`${p.name} - Rotta`}
               onChange={(e) =>
                 set({ seo: { ...p.seo, title: e.target.value } })
               }
             />
+            <span className="text-muted text-xs">The full browser title.</span>
           </label>
           <label className="block text-sm">
             Description

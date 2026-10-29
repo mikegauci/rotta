@@ -3,10 +3,15 @@ import Link from "next/link";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { GetInTouch } from "@/components/get-in-touch";
 import { mediaUrl } from "@/lib/media";
+import { codePageMetadata } from "@/lib/seo";
 
 const button =
   "inline-block bg-white px-10 py-4 text-xs font-black text-black transition-colors hover:bg-brand";
 const heading = "text-[35px] leading-[1.2] font-black";
+
+export function generateMetadata() {
+  return codePageMetadata("", "Home");
+}
 
 export default function Home() {
   return (

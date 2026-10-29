@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthSection, AuthTitle } from "@/components/auth/auth-section";
 import { RegisterForm } from "@/components/auth/register-form";
+import { codePageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "User Registration" };
+export function generateMetadata() {
+  return codePageMetadata("user-registration", "User Registration");
+}
 
 export default function RegistrationPage() {
   return (

@@ -12,6 +12,7 @@ import {
   type EventDetail,
 } from "@/lib/events";
 import { mediaUrl } from "@/lib/media";
+import { notFoundMetadata, pageMetadata } from "@/lib/seo";
 
 // Events live at /events/<slug>/, as on WordPress.
 export async function generateStaticParams() {
@@ -24,22 +25,20 @@ export async function generateMetadata({
 }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const event = await getEvent(slug);
-  if (!event) return {};
+  if (!event) return notFoundMetadata;
   const description =
     event.seo.description ||
     `${formatEventDate(event.startsOn)}${event.location ? ` at ${event.location}` : ""}. ${event.description}`
       .slice(0, 160)
       .trim();
-  return {
-    title: event.seo.title || event.title,
+  return pageMetadata({
+    name: event.title,
+    path: `/events/${event.slug}/`,
+    seo: event.seo,
     description,
-    robots: event.seo.noindex ? { index: false } : undefined,
-    openGraph: {
-      title: event.title,
-      description,
-      images: event.poster ? [mediaUrl(event.poster.path)] : undefined,
-    },
-  };
+    image: event.poster?.path,
+    type: "article",
+  });
 }
 
 function websiteHref(url: string) {

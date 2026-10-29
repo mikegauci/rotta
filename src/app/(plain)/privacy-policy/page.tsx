@@ -1,24 +1,10 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
+import { codePageMetadata } from "@/lib/seo";
 import { getStaticPage } from "@/lib/static-pages";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const page = await getStaticPage("privacy-policy");
-  const seo = page?.seo as
-    | {
-        title?: string;
-        description?: string;
-        noindex?: boolean;
-        canonical?: string;
-      }
-    | undefined;
-  return {
-    title: seo?.title || page?.title || "Privacy Policy",
-    description: seo?.description || undefined,
-    robots: seo?.noindex ? { index: false } : undefined,
-    alternates: seo?.canonical ? { canonical: seo.canonical } : undefined,
-  };
+export function generateMetadata() {
+  return codePageMetadata("privacy-policy", "Privacy Policy");
 }
 
 export default async function PrivacyPolicy() {
@@ -40,9 +26,8 @@ export default async function PrivacyPolicy() {
   );
   return (
     <Container className="py-16">
-      <h1 className="text-ink mb-8 text-[40px] leading-[1.3] font-black">
-        {page.title}
-      </h1>
+      {/* The imported policy starts with its own "PRIVACY NOTICE" heading. */}
+      <h1 className="sr-only">{page.title}</h1>
       <div
         className="post-content privacy-content"
         dangerouslySetInnerHTML={{ __html: content }}

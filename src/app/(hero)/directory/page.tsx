@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CategoryCarousel } from "@/components/directory/category-carousel";
@@ -10,13 +9,14 @@ import { StepFilter } from "@/components/directory/step-filter";
 import { GetInTouch } from "@/components/get-in-touch";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { buildSteps, getDirectory, termsByKind } from "@/lib/directory";
+import { codePageMetadata } from "@/lib/seo";
 import { mediaUrl } from "@/lib/media";
 
-export const metadata: Metadata = {
-  title: "Directory",
-  description:
-    "Malta’s automotive directory: find mechanics, detailers, parts, dealers and more by vehicle, era, service and region.",
-};
+export function generateMetadata() {
+  return codePageMetadata("directory", "Directory", {
+    image: "/directory/malta-automotive-directory.webp",
+  });
+}
 
 export default async function DirectoryPage() {
   const { terms } = await getDirectory();

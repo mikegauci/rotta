@@ -177,9 +177,10 @@ export function EventEditor({ initial }: { initial: EditorEvent }) {
               onChange={(e) =>
                 update({ seo: { ...event.seo, title: e.target.value } })
               }
-              placeholder={event.title}
+              placeholder={`${event.title} - Rotta`}
               className={field}
             />
+            <span className="text-muted text-xs">The full browser title.</span>
           </label>
           <label className="block">
             <span className={label}>Description</span>
