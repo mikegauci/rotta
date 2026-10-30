@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { GetInTouch } from "@/components/get-in-touch";
+import { HomeHeroVideo } from "@/components/home-hero-video";
 import { mediaUrl } from "@/lib/media";
 import { codePageMetadata } from "@/lib/seo";
 
@@ -24,7 +25,7 @@ export default async function Home() {
       <ManagedPageContent path="">
         <OrderedSections order={fields.homeOrder}>
           <div data-cms-section="intro" className="bg-ink text-white">
-            <section className="after:to-ink relative overflow-hidden px-5 py-[180px] after:absolute after:inset-x-0 after:bottom-0 after:h-[150px] after:bg-linear-to-b after:from-transparent">
+            <section className="after:to-ink relative overflow-hidden bg-black px-5 py-[180px] after:absolute after:inset-x-0 after:bottom-0 after:h-[150px] after:bg-linear-to-b after:from-transparent">
               {fields.heroMode === "image" ? (
                 <Image
                   src={mediaUrl(fields.heroImage)}
@@ -35,17 +36,7 @@ export default async function Home() {
                   className="object-cover opacity-65"
                 />
               ) : (
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-hidden
-                  poster={mediaUrl(fields.heroImage)}
-                  className="absolute inset-0 size-full object-cover opacity-65"
-                >
-                  <source src={fields.heroVideo} type="video/mp4" />
-                </video>
+                <HomeHeroVideo src={fields.heroVideo} />
               )}
               <div className="relative z-10 mx-auto max-w-[1140px]">
                 <h1 className="mb-[15px] text-[40px] leading-[1.3] font-black">
