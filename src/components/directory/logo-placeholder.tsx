@@ -1,12 +1,14 @@
-import { FaRegImages } from "react-icons/fa";
+import Image from "next/image";
 
 // Shown when a listing has no logo (the live site's black image icon tile).
 export function LogoPlaceholder({ className = "" }: { className?: string }) {
   return (
-    <div
-      className={`bg-ink text-brand grid aspect-square w-full place-items-center ${className}`}
-    >
-      <FaRegImages className="size-1/3" aria-hidden />
-    </div>
+    <Image
+      src="/directory/default-business.jpg"
+      alt=""
+      width={150}
+      height={150}
+      className={`aspect-square w-full object-contain ${className}`}
+    />
   );
 }

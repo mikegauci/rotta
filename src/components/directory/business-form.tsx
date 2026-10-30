@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { MediaField, type PickedMedia } from "@/components/admin/media-picker";
 import type { BusinessInput } from "@/lib/business-input";
 import { MEDIA_BUCKET, mediaUrl } from "@/lib/media";
 import { createClient } from "@/lib/supabase/client";
+import { LogoPlaceholder } from "@/components/directory/logo-placeholder";
 
 export type TermOption = { id: string; label: string };
 export type TermGroups = {
@@ -118,7 +120,7 @@ function OwnerLogo({
               className="size-full object-contain"
             />
           ) : (
-            <span className="text-muted text-xs">No logo</span>
+            <LogoPlaceholder />
           )}
         </div>
         <div className="space-y-2 text-sm">
@@ -153,6 +155,7 @@ export function BusinessForm({
   logoOwner,
   onSave,
   submitLabel = "Submit",
+  successHref,
   children,
 }: {
   initial: BusinessFormValue;
@@ -161,8 +164,10 @@ export function BusinessForm({
   logoOwner: string | null;
   onSave: (input: BusinessInput) => Promise<{ error?: string } | object>;
   submitLabel?: string;
+  successHref?: string;
   children?: React.ReactNode;
 }) {
+  const router = useRouter();
   const [value, setValue] = useState(initial);
   const [secondPhone, setSecondPhone] = useState(Boolean(initial.phone2));
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
@@ -215,6 +220,10 @@ export function BusinessForm({
           ? { ok: false, text: result.error }
           : { ok: true, text: "Your listing has been saved." },
       );
+      if (!("error" in result && result.error) && successHref) {
+        router.push(successHref);
+        router.refresh();
+      }
     });
   }
 
@@ -241,7 +250,7 @@ export function BusinessForm({
       <div className="grid gap-4 md:grid-cols-3">
         <label>
           <span className={label}>Business Name *</span>
-          <input required {...text("name")} className={input} />
+          <input required maxLength={120} {...text("name")} className={input} />
         </label>
         <label>
           <span className={label}>Location</span>
@@ -252,8 +261,13 @@ export function BusinessForm({
           />
         </label>
         <label>
-          <span className={label}>Short Description</span>
-          <input {...text("shortDescription")} className={input} />
+          <span className={label}>Short Description *</span>
+          <input
+            required
+            maxLength={200}
+            {...text("shortDescription")}
+            className={input}
+          />
         </label>
       </div>
 

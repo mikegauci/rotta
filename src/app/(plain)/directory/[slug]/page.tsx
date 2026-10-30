@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { FaEnvelope, FaLaptop, FaPhoneAlt } from "react-icons/fa";
 import { LogoPlaceholder } from "@/components/directory/logo-placeholder";
+import { OwnerListingLink } from "@/components/directory/owner-listing-link";
 import { Container } from "@/components/layout/container";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import {
@@ -177,11 +178,14 @@ async function ListingView({
             <Details business={business} />
           </div>
         </div>
-        <p className="mt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
           <Link href="/directory/search-results/" className="text-brand">
             Back to Search Results
           </Link>
-        </p>
+          <Suspense fallback={null}>
+            <OwnerListingLink businessId={business.id} />
+          </Suspense>
+        </div>
       </Container>
     </article>
   );
