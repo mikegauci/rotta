@@ -20,12 +20,11 @@ export default async function EditListingPage({
   let ownerEmail = "";
   if (listing.ownerId) {
     const db = await createClient();
-    const { data } = await db
-      .from("profiles")
-      .select("email")
-      .eq("id", listing.ownerId)
-      .maybeSingle();
-    ownerEmail = data?.email ?? "";
+    const { data, error } = await db.rpc("admin_directory_owner_email", {
+      listing_id: listing.id,
+    });
+    if (error) throw error;
+    ownerEmail = data ?? "";
   }
   return (
     <>

@@ -1088,6 +1088,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          admin_capabilities: string[] | null;
           billing_address: Json;
           created_at: string;
           email: string;
@@ -1101,6 +1102,7 @@ export type Database = {
           wp_id: number | null;
         };
         Insert: {
+          admin_capabilities?: string[] | null;
           billing_address?: Json;
           created_at?: string;
           email: string;
@@ -1114,6 +1116,7 @@ export type Database = {
           wp_id?: number | null;
         };
         Update: {
+          admin_capabilities?: string[] | null;
           billing_address?: Json;
           created_at?: string;
           email?: string;
@@ -1389,6 +1392,43 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_author_options: {
+        Args: Record<PropertyKey, never>;
+        Returns: { id: string; display_name: string }[];
+      };
+
+      admin_directory_owner_id: {
+        Args: { candidate: string };
+        Returns: string | null;
+      };
+      admin_directory_owner_email: {
+        Args: { listing_id: string };
+        Returns: string | null;
+      };
+
+      admin_list_users: {
+        Args: {
+          search_text?: string;
+          filter_role?: string;
+          page_number?: number;
+        };
+        Returns: Json;
+      };
+      admin_save_user_profile: {
+        Args: {
+          target_user: string;
+          display_name: string;
+          new_username: string;
+          new_role: Database["public"]["Enums"]["app_role"];
+          capabilities: string[] | null;
+        };
+        Returns: undefined;
+      };
+      admin_release_user_files: {
+        Args: { target_user: string };
+        Returns: undefined;
+      };
+
       admin_bulk_status: {
         Args: {
           target_table: string;

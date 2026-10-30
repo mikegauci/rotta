@@ -20,7 +20,7 @@ export default async function DirectoryAdminPage({
   let query = db
     .from("businesses")
     .select(
-      "id, slug, name, location, status, updated_at, owner:profiles(email), thumbnail:media!businesses_logo_media_id_fkey(path, alt)",
+      "id, slug, name, location, status, updated_at, owner_id, owner:profiles(email), thumbnail:media!businesses_logo_media_id_fkey(path, alt)",
     )
     .order("name");
   if (search) query = query.ilike("name", `%${search}%`);
@@ -114,7 +114,9 @@ export default async function DirectoryAdminPage({
                     {b.location || `/${b.slug}/`}
                   </p>
                 </td>
-                <td className="px-4 py-3">{b.owner?.email ?? "—"}</td>
+                <td className="px-4 py-3">
+                  {b.owner?.email ?? (b.owner_id ? "Assigned" : "—")}
+                </td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded px-2 py-0.5 text-xs font-semibold ${

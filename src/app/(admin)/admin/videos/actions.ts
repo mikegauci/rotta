@@ -32,7 +32,7 @@ export async function addVideo(
   seriesId: string,
   link: string,
 ): Promise<Result> {
-  await assertAdmin();
+  await assertAdmin("videos");
   const youtubeId = parseYoutubeId(link);
   if (!youtubeId) return { error: "Paste a YouTube link or video id." };
   const db = await createClient();
@@ -77,7 +77,7 @@ export async function updateVideo(
     status?: Enums<"publish_status">;
   },
 ): Promise<Result> {
-  await assertAdmin();
+  await assertAdmin("videos");
   const db = await createClient();
   const row: {
     title?: string;
@@ -110,7 +110,7 @@ export async function updateVideo(
 }
 
 export async function deleteVideo(id: string): Promise<Result> {
-  await assertAdmin();
+  await assertAdmin("videos");
   const db = await createClient();
   const { error } = await db.from("videos").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -123,7 +123,7 @@ export async function reorder(
   table: "videos" | "video_series",
   ids: string[],
 ): Promise<Result> {
-  await assertAdmin();
+  await assertAdmin("videos");
   if (table !== "videos" && table !== "video_series")
     return { error: "Unknown list." };
   const db = await createClient();
@@ -142,7 +142,7 @@ export async function saveSeries(input: {
   description: string;
   titleMediaId: string | null;
 }): Promise<Result> {
-  await assertAdmin();
+  await assertAdmin("videos");
   const title = input.title.trim();
   if (!title) return { error: "Add a series name." };
   const row = {
@@ -177,7 +177,7 @@ export async function saveSeries(input: {
 
 // Only empty series can go, so videos are never orphaned by accident.
 export async function deleteSeries(id: string): Promise<Result> {
-  await assertAdmin();
+  await assertAdmin("videos");
   const db = await createClient();
   const { count } = await db
     .from("videos")

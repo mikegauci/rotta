@@ -12,6 +12,7 @@ export type CurrentUser = {
   username: string | null;
   fullName: string | null;
   role: AppRole;
+  adminCapabilities: string[] | null;
 };
 
 // Reads the session from the request cookies. Call it inside a <Suspense>
@@ -24,7 +25,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, username, full_name, role")
+    .select("id, email, username, full_name, role, admin_capabilities")
     .eq("id", userId)
     .single();
   if (!profile) return null;
@@ -35,6 +36,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     username: profile.username,
     fullName: profile.full_name,
     role: profile.role,
+    adminCapabilities: profile.admin_capabilities,
   };
 });
 

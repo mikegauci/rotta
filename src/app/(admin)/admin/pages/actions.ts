@@ -27,7 +27,7 @@ export type PageInput = {
 export async function savePage(
   input: PageInput,
 ): Promise<{ error: string } | { id: string }> {
-  await assertAdmin();
+  await assertAdmin("pages");
   if (!input.title?.trim()) return { error: "Add a title." };
   if (!["draft", "published"].includes(input.status))
     return { error: "Unknown status." };

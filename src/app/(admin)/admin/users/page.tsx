@@ -1,77 +1,35 @@
 import type { Metadata } from "next";
-import { AdminPageHeader } from "@/components/admin/page-header";
-import { RoleSelect } from "@/components/admin/role-select";
-import { getCurrentUser } from "@/lib/auth/session";
+import { AdminUserList } from "@/components/admin/user-list";
+import { requireAdminPage } from "@/lib/auth/admin";
+import { userListParams, type UserList } from "@/lib/admin/users";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Users" };
-
-const dateFormat = new Intl.DateTimeFormat("en-MT", { dateStyle: "medium" });
-
-export default async function UsersPage() {
-  const me = await getCurrentUser();
-  const supabase = await createClient();
-  const { data: users, error } = await supabase
-    .from("profiles")
-    .select("id, email, username, full_name, role, created_at")
-    .order("created_at", { ascending: false });
-
+export default async function UsersPage({
+  searchParams,
+}: PageProps<"/admin/users">) {
+  const me = await requireAdminPage();
+  const params = await searchParams;
+  const { q, role, page } = userListParams(params);
+  const db = await createClient();
+  const { data, error } = await db.rpc("admin_list_users", {
+    search_text: q,
+    filter_role: role,
+    page_number: page,
+  });
+  if (error || !data)
+    return (
+      <p role="alert" className="text-red-700">
+        Could not load users. Please refresh and try again.
+      </p>
+    );
   return (
-    <>
-      <AdminPageHeader
-        title="Users"
-        description="Everyone with an account. Business owners can only manage their own listing."
-      />
-      {error && (
-        <p className="text-coral">Could not load users: {error.message}</p>
-      )}
-      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="text-muted border-b border-[#eee] text-xs uppercase">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Name</th>
-              <th className="px-4 py-3 font-semibold">Email</th>
-              <th className="px-4 py-3 font-semibold">Joined</th>
-              <th className="px-4 py-3 font-semibold">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users?.map((user) => (
-              <tr
-                key={user.id}
-                className="border-b border-[#f3f3f3] last:border-0"
-              >
-                <td className="px-4 py-3">
-                  <p className="text-ink font-semibold">
-                    {user.full_name ?? "—"}
-                  </p>
-                  {user.username && (
-                    <p className="text-muted text-xs">@{user.username}</p>
-                  )}
-                </td>
-                <td className="px-4 py-3">{user.email}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {dateFormat.format(new Date(user.created_at))}
-                </td>
-                <td className="px-4 py-3">
-                  <RoleSelect
-                    userId={user.id}
-                    role={user.role}
-                    disabled={user.id === me?.id}
-                  />
-                </td>
-              </tr>
-            ))}
-            {users?.length === 0 && (
-              <tr>
-                <td colSpan={4} className="text-muted px-4 py-8 text-center">
-                  No users yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </>
+    <AdminUserList
+      result={data as unknown as UserList}
+      q={q}
+      role={role}
+      me={me.id}
+      deleted={params.deleted === "1"}
+    />
   );
 }

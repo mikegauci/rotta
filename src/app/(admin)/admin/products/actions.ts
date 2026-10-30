@@ -38,7 +38,7 @@ export type ProductInput = {
 export async function saveProduct(
   input: ProductInput,
 ): Promise<{ error: string } | { id: string }> {
-  await assertAdmin();
+  await assertAdmin("products");
   const db = await createClient();
   const slug = slugify(input.slug || input.name);
   if (!input.name.trim() || !slug)

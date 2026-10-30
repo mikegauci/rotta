@@ -36,7 +36,7 @@ function refresh(slugs: string[]) {
 export async function saveEvent(
   input: EventInput,
 ): Promise<{ error: string } | { id: string; slug: string }> {
-  await assertAdmin();
+  await assertAdmin("events");
   const title = input.title.trim();
   const slug = slugify(input.slug || title);
   if (!title) return { error: "Add a title." };
@@ -125,7 +125,7 @@ export async function saveEvent(
 }
 
 export async function deleteEvent(id: string) {
-  await assertAdmin();
+  await assertAdmin("events");
   const db = await createClient();
   const { data, error } = await db
     .from("events")

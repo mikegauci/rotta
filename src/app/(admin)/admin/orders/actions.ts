@@ -14,7 +14,7 @@ export async function updateOrder(
   _previous: OrderFormState,
   form: FormData,
 ): Promise<OrderFormState> {
-  await assertAdmin();
+  await assertAdmin("orders");
   const id = String(form.get("id") ?? "");
   const status = String(form.get("status")) as Enums<"order_status">;
   const note = String(form.get("note") ?? "").trim();
@@ -70,7 +70,7 @@ export async function updateOrder(
 // Deletes every Stripe test-mode order and checkout, restoring their stock.
 // Live orders are never touched (enforced in SQL).
 export async function purgeTestOrders(): Promise<{ message: string }> {
-  await assertAdmin();
+  await assertAdmin("orders");
   const db = createAdminClient();
   if (!db) return { message: "The server is missing its Supabase secret key." };
   const { data, error } = await db.rpc("purge_test_shop_checkouts");

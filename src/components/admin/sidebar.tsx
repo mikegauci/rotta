@@ -37,53 +37,73 @@ const sections: { title: string; items: Item[] }[] = [
   },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({
+  capabilities = null,
+}: {
+  capabilities?: string[] | null;
+}) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Admin" className="space-y-6 text-sm">
-      {sections.map((section) => (
-        <div key={section.title}>
-          <p className="text-footer-muted mb-2 px-3 text-xs font-semibold tracking-wider uppercase">
-            {section.title}
-          </p>
-          <ul className="space-y-0.5">
-            {section.items.map((item) => {
-              const active =
-                item.href === "/admin/"
-                  ? pathname === "/admin/"
-                  : pathname.startsWith(item.href);
-              if (!item.ready)
-                return (
-                  <li
-                    key={item.href}
-                    className="flex justify-between px-3 py-1.5 text-white/35"
-                  >
-                    {item.label}
-                    <span className="text-[10px] tracking-wide uppercase">
-                      Soon
-                    </span>
-                  </li>
-                );
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`block rounded px-3 py-1.5 transition-colors ${
-                      active
-                        ? "text-brand bg-white/10 font-semibold"
-                        : "text-footer hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+      {sections
+        .filter((section) =>
+          section.items.some(
+            (item) =>
+              capabilities === null ||
+              item.href === "/admin/" ||
+              capabilities.includes(item.href.split("/")[2]),
+          ),
+        )
+        .map((section) => (
+          <div key={section.title}>
+            <p className="text-footer-muted mb-2 px-3 text-xs font-semibold tracking-wider uppercase">
+              {section.title}
+            </p>
+            <ul className="space-y-0.5">
+              {section.items
+                .filter(
+                  (item) =>
+                    capabilities === null ||
+                    item.href === "/admin/" ||
+                    capabilities.includes(item.href.split("/")[2]),
+                )
+                .map((item) => {
+                  const active =
+                    item.href === "/admin/"
+                      ? pathname === "/admin/"
+                      : pathname.startsWith(item.href);
+                  if (!item.ready)
+                    return (
+                      <li
+                        key={item.href}
+                        className="flex justify-between px-3 py-1.5 text-white/35"
+                      >
+                        {item.label}
+                        <span className="text-[10px] tracking-wide uppercase">
+                          Soon
+                        </span>
+                      </li>
+                    );
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={`block rounded px-3 py-1.5 transition-colors ${
+                          active
+                            ? "text-brand bg-white/10 font-semibold"
+                            : "text-footer hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+        ))}
     </nav>
   );
 }
