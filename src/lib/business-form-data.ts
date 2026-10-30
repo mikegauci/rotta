@@ -49,7 +49,8 @@ export async function getListingForForm(filter: Filter) {
     "ownerId" in filter
       ? query.eq("owner_id", filter.ownerId)
       : query.eq("id", filter.id);
-  const { data } = await query.maybeSingle();
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
   if (!data) return null;
   const value: BusinessFormValue = {
     name: data.name,

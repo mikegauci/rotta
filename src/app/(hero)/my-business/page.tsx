@@ -1,6 +1,7 @@
 import { codePageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { Suspense } from "react";
+import { BusinessDashboard } from "@/components/directory/business-dashboard";
 import { BusinessForm } from "@/components/directory/business-form";
 import { Container } from "@/components/layout/container";
 import { signOut } from "@/lib/auth/actions";
@@ -19,22 +20,33 @@ export function generateMetadata() {
 // Reads the session on every request, so skip instant-navigation validation.
 export const instant = false;
 
-export default function MyBusinessPage() {
+export default function MyBusinessPage({
+  searchParams,
+}: PageProps<"/my-business">) {
   return (
     <Suspense
       fallback={<section className="min-h-[600px] bg-[#131a1d] pt-[180px]" />}
     >
-      <Dashboard />
+      <Dashboard searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Dashboard() {
-  const user = await requireRole(["business_owner", "admin"], "/my-business/");
-  const [listing, terms] = await Promise.all([
-    getListingForForm({ ownerId: user.id }),
-    getTermGroups(),
-  ]);
+async function Dashboard({
+  searchParams,
+}: Pick<PageProps<"/my-business">, "searchParams">) {
+  const edit = (await searchParams).edit === "1";
+  const user = await requireRole(
+    ["business_owner", "admin"],
+    edit ? "/my-business/?edit=1" : "/my-business/",
+  );
+  const listing = await getListingForForm({ ownerId: user.id });
+
+  if (listing && !edit) {
+    return <BusinessDashboard listing={listing} />;
+  }
+
+  const terms = await getTermGroups();
 
   return (
     <>
@@ -51,6 +63,14 @@ async function Dashboard() {
                 className="text-brand mt-2 inline-block font-semibold hover:underline"
               >
                 View your listing
+              </Link>
+            )}
+            {listing && (
+              <Link
+                href="/my-business/"
+                className="text-brand mt-3 block font-semibold hover:underline"
+              >
+                Back to My Business
               </Link>
             )}
             {listing && listing.status === "draft" && (
@@ -87,6 +107,7 @@ async function Dashboard() {
             logoOwner={user.id}
             onSave={saveMyListing}
             submitLabel={listing ? "Update" : "Submit"}
+            successHref="/my-business/"
           />
         </Container>
       </section>

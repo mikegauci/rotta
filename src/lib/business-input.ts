@@ -61,6 +61,9 @@ export function cleanBusiness(input: BusinessInput):
 
   const name = text("name");
   if (!name) return { error: "Add your business name." };
+  const shortDescription = text("shortDescription");
+  if (!shortDescription)
+    return { error: "Add a short description of your business." };
   const email = text("email");
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return { error: "That email address doesn’t look right." };
@@ -89,7 +92,7 @@ export function cleanBusiness(input: BusinessInput):
     row: {
       name,
       location: text("location"),
-      short_description: text("shortDescription"),
+      short_description: shortDescription,
       description: text("description"),
       address: text("address"),
       logo_media_id: input.logoMediaId,

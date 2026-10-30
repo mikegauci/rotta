@@ -8,6 +8,7 @@ Rebuild of rotta.mt (Malta automotive community site) from WordPress to **Next.j
 - English only.
 - **Never point rotta.mt DNS (Cloudflare) at Vercel without explicit go-ahead from Mike.** The Vercel production alias is used for integration checks while rotta.mt still serves WordPress.
 - Never commit secrets or anything in `migration/exports/` (DB dump, uploads). Both are gitignored.
+- Mike has authorized automatic deployment of completed Rotta changes after checks. Deploy to the existing Vercel production alias and confirm the live result; if deployment is blocked, ask before wrapping up. This does not authorize the rotta.mt DNS switch.
 
 ## Stack
 
@@ -210,3 +211,9 @@ Branch `pr/16-admin-improvements` adds shop sales metrics (7/30/90 days, EUR pro
 Pages support homepage hero image/video switching, featured image/story/video and button link controls and ordering four homepage groups (intro includes hero plus featured stories). Page/post drafts are saved locally with explicit recovery; saving/publishing remains manual. History restoration handles earlier content of existing pages/posts, preserving URLs and publishing status. History starts at installation, not before it. Database triggers audit content changes and retain revision snapshots; media checks protect current references, static layout files and retained revisions. JPEG/PNG uploads convert to WebP (max 2000px, q80) when smaller; animated/vector formats remain unchanged.
 
 Migrations 015/016/017 are applied to Rotta. `supabase/tests/cms_history.sql` and `supabase/tests/cms_bulk.sql` passed in a rolled-back transaction: before/after capture and actor, admin-only read access, immutable history, and referenced-media deletion denial. Security advisors reported only existing auth/content RPC and leaked-password findings; no new CMS advisories. Additional checks: `node --test tests/*.test.mjs`, lint, typecheck and build. Signed-in browser acceptance remains with Mike as requested. Maintenance checks flag candidates for review; they do not automatically modify/delete content or crawl external sites.
+
+### My Business dashboard and listing defaults
+
+Existing owners land on the screenshot-matched My Business dashboard, with Visit your page and Edit your page cards; `/my-business/?edit=1` opens the editor. New owners see the creation form. Successful owner saves return to the dashboard. Hidden listings remain editable with a visibility notice. Business name and short description are required in the browser and shared server validation. Listings without a logo use the original Rotta default image bundled at `public/directory/default-business.jpg`; uploads replace it and removal restores it. Public listing pages show Edit your listing beside Back to Search Results only after a request-time session and ownership check in its own Suspense boundary; public listing data stays cacheable.
+
+Validation: `node --test tests/*.test.mjs` covers required/whitespace/length validation. A local fixture using the real dashboard/form components passed desktop/mobile visual checks and browser required-input checks. Signed-out edit URLs preserve their destination through login. A rollback-only authenticated SQL check confirmed own-listing lookup and exclusion of other owners. No schema change. A real signed-in save/upload browser pass remains unverified; no user account or listing was modified for testing.
