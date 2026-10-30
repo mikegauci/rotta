@@ -7,25 +7,19 @@ import { createClient } from "@/lib/supabase/server";
 // wrote a post.
 export async function getEditorOptions() {
   const supabase = await createClient();
-  const [categories, tags, admins, postAuthors] = await Promise.all([
+  const [categories, tags, authorOptions] = await Promise.all([
     supabase.from("post_categories").select("id, name").order("name"),
     supabase.from("post_tags").select("name").order("name"),
-    supabase
-      .from("profiles")
-      .select("id, username, full_name, email")
-      .eq("role", "admin"),
-    supabase.rpc("post_authors"),
+    supabase.rpc("admin_author_options"),
   ]);
-  const authors = new Map<string, string>();
-  for (const a of admins.data ?? [])
-    authors.set(a.id, a.full_name || a.username || a.email);
-  for (const a of postAuthors.data ?? [])
-    if (!authors.has(a.id)) authors.set(a.id, a.full_name || a.username || "");
-
+  if (authorOptions.error) throw authorOptions.error;
   return {
     categories: categories.data ?? [],
     tagSuggestions: (tags.data ?? []).map((t) => t.name),
-    authors: [...authors].map(([id, name]) => ({ id, name })),
+    authors: (authorOptions.data ?? []).map((author) => ({
+      id: author.id,
+      name: author.display_name,
+    })),
   };
 }
 

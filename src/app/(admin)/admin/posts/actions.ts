@@ -33,7 +33,7 @@ function refresh(slugs: string[]) {
 }
 
 export async function savePost(input: PostInput): Promise<SaveResult> {
-  await assertAdmin();
+  await assertAdmin("posts");
 
   const title = input.title.trim();
   const slug = slugify(input.slug || title);
@@ -180,7 +180,7 @@ async function ensureTags(
 }
 
 export async function deletePost(id: string) {
-  await assertAdmin();
+  await assertAdmin("posts");
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("posts")
@@ -194,7 +194,7 @@ export async function deletePost(id: string) {
 }
 
 export async function createCategory(name: string) {
-  await assertAdmin();
+  await assertAdmin("posts");
   const clean = name.trim();
   const slug = slugify(clean);
   if (!slug) return { error: "Add a name." };

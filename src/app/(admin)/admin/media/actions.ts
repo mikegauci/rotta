@@ -17,7 +17,7 @@ export type UploadedFile = {
 
 // The browser uploads straight to Storage (RLS checks admin); this records it.
 export async function recordUpload(file: UploadedFile) {
-  const admin = await assertAdmin();
+  const admin = await assertAdmin("media");
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("media")
@@ -41,7 +41,7 @@ export async function recordUpload(file: UploadedFile) {
 }
 
 export async function updateAlt(id: string, alt: string) {
-  await assertAdmin();
+  await assertAdmin("media");
   const supabase = await createClient();
   const { error } = await supabase
     .from("media")
@@ -53,7 +53,7 @@ export async function updateAlt(id: string, alt: string) {
 }
 
 export async function deleteMedia(id: string) {
-  await assertAdmin();
+  await assertAdmin("media");
   const supabase = await createClient();
   const existing = await supabase
     .from("media")

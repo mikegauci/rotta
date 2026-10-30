@@ -1,3 +1,7 @@
+import {
+  ADMIN_CAPABILITIES,
+  type AdminCapability,
+} from "@/lib/admin/capabilities";
 import { RecentDirectoryListings } from "@/components/admin/recent-directory-listings";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -20,6 +24,45 @@ import { formatPrice } from "@/lib/format";
 
 export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   const params = await searchParams;
+  const me = await getCurrentUser();
+  if (me?.role === "admin" && me.adminCapabilities !== null)
+    return (
+      <>
+        <AdminPageHeader
+          title="Dashboard"
+          description="Choose a section to manage."
+        />
+        {params.denied === "1" && (
+          <p
+            role="status"
+            className="mb-5 rounded-lg bg-amber-50 p-3 text-amber-900"
+          >
+            Your account does not have access to that section.
+          </p>
+        )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {me.adminCapabilities
+            .filter((cap): cap is AdminCapability =>
+              Object.hasOwn(ADMIN_CAPABILITIES, cap),
+            )
+            .map((cap) => (
+              <Link
+                className="hover:border-brand rounded-xl border border-black/10 bg-white p-6 font-bold"
+                key={cap}
+                href={`/admin/${cap}/`}
+              >
+                {ADMIN_CAPABILITIES[cap]} →
+              </Link>
+            ))}
+        </div>
+        {!me.adminCapabilities.length && (
+          <p>
+            No CMS sections have been assigned to your account. Contact a full
+            administrator.
+          </p>
+        )}
+      </>
+    );
   const days = params.days === "7" ? 7 : params.days === "90" ? 90 : 30;
   const today = maltaToday();
   const [currentYear, currentMonth] = today.split("-").map(Number);

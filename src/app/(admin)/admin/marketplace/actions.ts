@@ -42,7 +42,7 @@ const text = (value: string, max: number) =>
 export async function saveVehicle(
   input: VehicleInput,
 ): Promise<{ error: string } | { id: string; slug: string }> {
-  await assertAdmin();
+  await assertAdmin("marketplace");
   const title = text(input.title, 200);
   const slug = slugify(input.slug || title);
   if (!title) return { error: "Add a title." };
@@ -141,7 +141,7 @@ export async function saveVehicle(
 }
 
 export async function deleteVehicle(id: string) {
-  await assertAdmin();
+  await assertAdmin("marketplace");
   const db = await createClient();
   const { data, error } = await db
     .from("vehicles")

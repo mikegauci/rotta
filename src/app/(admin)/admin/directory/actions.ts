@@ -24,12 +24,11 @@ type Db = Awaited<ReturnType<typeof createClient>>;
 async function ownerIdFor(db: Db, email: string) {
   const clean = email.trim().toLowerCase();
   if (!clean) return { id: null };
-  const { data } = await db
-    .from("profiles")
-    .select("id")
-    .ilike("email", clean)
-    .maybeSingle();
-  return data ? { id: data.id } : { error: `No account uses ${clean}.` };
+  const { data, error } = await db.rpc("admin_directory_owner_id", {
+    candidate: clean,
+  });
+  if (error) return { error: "Could not find that owner account." };
+  return data ? { id: data } : { error: `No account uses ${clean}.` };
 }
 
 export async function adminSaveListing(
@@ -37,7 +36,7 @@ export async function adminSaveListing(
   input: BusinessInput,
   meta: ListingMeta,
 ): Promise<{ error: string } | { id: string; slug: string }> {
-  await assertAdmin();
+  await assertAdmin("directory");
   const clean = cleanBusiness(input);
   if ("error" in clean) return clean;
   if (!Constants.public.Enums.publish_status.includes(meta.status))
@@ -112,7 +111,7 @@ export async function adminSaveListing(
 }
 
 export async function deleteListing(id: string) {
-  await assertAdmin();
+  await assertAdmin("directory");
   const db = await createClient();
   const { data, error } = await db
     .from("businesses")
@@ -135,7 +134,7 @@ export type TermInput = {
 };
 
 export async function saveTerm(input: TermInput) {
-  await assertAdmin();
+  await assertAdmin("directory");
   const label = input.label.trim();
   const slug = slugify(label);
   if (!slug) return { error: "Add a name." };
@@ -171,7 +170,7 @@ export async function saveTerm(input: TermInput) {
 }
 
 export async function deleteTerm(id: string) {
-  await assertAdmin();
+  await assertAdmin("directory");
   const db = await createClient();
   const { error } = await db.from("directory_terms").delete().eq("id", id);
   if (error) return { error: error.message };

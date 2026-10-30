@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { signOut } from "@/lib/auth/actions";
-import { requireRole } from "@/lib/auth/session";
+import { getCurrentUser, requireRole } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s - Rotta Admin" },
@@ -29,7 +29,9 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           />
           <span className="text-footer-muted text-xs">Admin</span>
         </Link>
-        <AdminSidebar />
+        <Suspense fallback={null}>
+          <AdminNavigation />
+        </Suspense>
         <div className="mt-auto space-y-2 px-3 text-sm">
           <Link href="/" className="text-footer hover:text-brand block">
             View site
@@ -51,7 +53,9 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
               Menu
             </summary>
             <div className="bg-ink absolute right-0 z-20 mt-2 w-60 rounded p-4 shadow-lg">
-              <AdminSidebar />
+              <Suspense fallback={null}>
+                <AdminNavigation />
+              </Suspense>
             </div>
           </details>
         </div>
@@ -70,4 +74,10 @@ async function AdminOnly({ children }: { children: React.ReactNode }) {
   await connection();
   await requireRole(["admin"], "/admin/");
   return children;
+}
+
+async function AdminNavigation() {
+  const user = await getCurrentUser();
+  if (user?.role !== "admin") return null;
+  return <AdminSidebar capabilities={user.adminCapabilities} />;
 }
