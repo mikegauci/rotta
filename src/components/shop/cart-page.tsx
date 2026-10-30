@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useState } from "react";
 import { useCart, CartLines } from "./cart";
 import { formatPrice } from "@/lib/format";
@@ -60,28 +59,26 @@ export function CartPage({ checkout = false }: { checkout?: boolean }) {
             <p className="mb-6 text-sm">
               Includes 18% VAT. Delivery only to Malta & Gozo.
             </p>
-            {checkout ? (
-              <>
-                <p className="mb-5 text-sm">
-                  Enter your billing and delivery details and pay securely with
-                  Stripe.
-                </p>
-                <button
-                  onClick={pay}
-                  disabled={busy}
-                  className="shop-button w-full"
-                >
-                  {busy ? "Opening checkout…" : "Proceed to payment"}
-                </button>
-                <p role="alert" className="text-coral mt-4">
-                  {error}
-                </p>
-              </>
-            ) : (
-              <Link href="/checkout/" className="shop-button block text-center">
-                Proceed to checkout
-              </Link>
+            {checkout && (
+              <p className="mb-5 text-sm">
+                Enter your billing and delivery details and pay securely with
+                Stripe.
+              </p>
             )}
+            <button
+              onClick={pay}
+              disabled={busy}
+              className="shop-button w-full"
+            >
+              {busy
+                ? "Opening checkout…"
+                : checkout
+                  ? "Proceed to payment"
+                  : "Proceed to checkout"}
+            </button>
+            <p role="alert" className="text-coral mt-4">
+              {error}
+            </p>
           </section>
         )}
       </div>
