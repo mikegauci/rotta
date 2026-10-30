@@ -490,18 +490,23 @@ export function BusinessForm({
                   className="flex flex-wrap items-center gap-x-5 gap-y-3 py-4"
                 >
                   <span className="w-24 font-bold">{name}</span>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={open}
-                      onChange={(e) =>
-                        setHours(day, e.target.checked ? {} : null)
-                      }
-                      className="accent-brand size-4"
-                      aria-label={`Open on ${name}`}
-                    />
-                    {open ? "Open" : "Closed"}
-                  </label>
+                  <fieldset
+                    aria-label={`${name} status`}
+                    className="inline-flex rounded-lg border border-black/15 bg-black/[0.03] p-1"
+                  >
+                    <legend className="sr-only">{name} opening status</legend>
+                    {([false, true] as const).map((isOpen) => (
+                      <button
+                        key={String(isOpen)}
+                        type="button"
+                        aria-pressed={open === isOpen}
+                        onClick={() => setHours(day, isOpen ? {} : null)}
+                        className={`focus-visible:outline-brand min-w-20 rounded-md px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${open === isOpen ? "bg-brand text-black shadow-sm" : "text-muted hover:bg-white"}`}
+                      >
+                        {isOpen ? "Open" : "Closed"}
+                      </button>
+                    ))}
+                  </fieldset>
                   {open && (
                     <div className="flex flex-wrap items-center gap-3">
                       <label className="flex items-center gap-2 text-sm">
