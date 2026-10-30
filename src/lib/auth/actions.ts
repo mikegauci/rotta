@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { env } from "@/lib/env";
 import { safeNext } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  exactUsernamePattern,
+  resolveLoginEmail,
+} from "@/lib/auth/login-identifier";
 
 export type FormState =
   | {
@@ -27,15 +32,38 @@ export async function signIn(
   _: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const email = field(formData, "email");
+  const identifier = field(formData, "identifier") || field(formData, "email");
   const password = String(formData.get("password") ?? "");
-  const fields = { email };
-  if (!email || !password)
-    return { error: "Enter your email and password.", fields };
+  const fields = { identifier };
+  if (!identifier || !password)
+    return { error: "Enter your username or email and password.", fields };
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Incorrect email or password.", fields };
+  const fail = () => ({
+    error: "Incorrect username/email or password.",
+    fields,
+  });
+  try {
+    const email = await resolveLoginEmail(identifier, async (username) => {
+      const admin = createAdminClient();
+      if (!admin) return null;
+      const { data, error } = await admin
+        .from("profiles")
+        .select("email")
+        .ilike("username", exactUsernamePattern(username))
+        .maybeSingle();
+      if (error) return null;
+      return data?.email ?? null;
+    });
+    if (!email) return fail();
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) return fail();
+  } catch {
+    return fail();
+  }
 
   redirect(safeNext(formData.get("next"), "/my-business/"));
 }
