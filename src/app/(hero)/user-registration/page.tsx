@@ -13,7 +13,10 @@ export default function RegistrationPage() {
       <AuthTitle>Register</AuthTitle>
       <p className="mt-2 text-base">
         or{" "}
-        <Link href="/login/" className="hover:text-brand text-white">
+        <Link
+          href="/login/"
+          className="text-brand font-semibold hover:underline"
+        >
           log in
         </Link>
       </p>
