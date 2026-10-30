@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { BusinessDashboard } from "@/components/directory/business-dashboard";
 import { BusinessForm } from "@/components/directory/business-form";
+import { DeleteListing } from "@/components/directory/delete-listing";
 import { Container } from "@/components/layout/container";
 import { signOut } from "@/lib/auth/actions";
 import { requireRole } from "@/lib/auth/session";
@@ -11,7 +12,7 @@ import {
   getListingForForm,
   getTermGroups,
 } from "@/lib/business-form-data";
-import { saveMyListing } from "./actions";
+import { deleteMyListing, saveMyListing } from "./actions";
 
 export function generateMetadata() {
   return codePageMetadata("my-business", "My Business", { noindex: true });
@@ -35,7 +36,8 @@ export default function MyBusinessPage({
 async function Dashboard({
   searchParams,
 }: Pick<PageProps<"/my-business">, "searchParams">) {
-  const edit = (await searchParams).edit === "1";
+  const query = await searchParams;
+  const edit = query.edit === "1";
   const user = await requireRole(
     ["business_owner", "admin"],
     edit ? "/my-business/?edit=1" : "/my-business/",
@@ -43,26 +45,30 @@ async function Dashboard({
   const listing = await getListingForForm({ ownerId: user.id });
 
   if (listing && !edit) {
-    return <BusinessDashboard listing={listing} />;
+    return <BusinessDashboard listing={listing} saved={query.saved === "1"} />;
   }
 
   const terms = await getTermGroups();
 
   return (
     <>
-      <section className="bg-[#131a1d] pt-[180px] pb-[60px] text-white">
-        <Container className="flex flex-wrap items-end justify-between gap-6">
+      <section className="bg-[#131a1d] pt-[140px] pb-10 text-white">
+        <Container className="flex max-w-[1040px] flex-wrap items-end justify-between gap-6">
           <div>
-            <h1 className="text-[28px] font-black">My Business</h1>
-            <p className="mt-2">
-              Signed in as {user.fullName ?? user.username ?? user.email}.
+            <h1 className="text-[30px] leading-tight font-black sm:text-[40px]">
+              {listing ? "Edit your business" : "Add your business"}
+            </h1>
+            <p className="mt-2 text-white/75">
+              {listing
+                ? listing.value.name
+                : "Get discovered in Malta’s automotive directory."}
             </p>
             {listing && listing.status === "published" && (
               <Link
                 href={`/directory/${listing.slug}/`}
                 className="text-brand mt-2 inline-block font-semibold hover:underline"
               >
-                View your listing
+                View live listing ↗
               </Link>
             )}
             {listing && (
@@ -90,13 +96,19 @@ async function Dashboard({
           </form>
         </Container>
       </section>
-      <section className="bg-white py-[50px]">
-        <Container className="max-w-[1000px]">
-          <h2 className="mt-0 mb-[25px] text-center text-[40px] leading-none font-medium md:text-[65px]">
-            Business Details
-          </h2>
+      <section className="bg-black/3 py-8 sm:py-10">
+        <Container className="max-w-[1040px]">
+          {query.deleted === "1" && !listing && (
+            <p
+              role="status"
+              className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800"
+            >
+              Your listing has been deleted. You can create a new one below
+              whenever you’re ready.
+            </p>
+          )}
           {!listing && (
-            <p className="mb-8 text-center">
+            <p className="text-muted mb-6 text-sm">
               Fill in your details below. Your listing goes live in the
               directory as soon as you submit.
             </p>
@@ -105,10 +117,16 @@ async function Dashboard({
             initial={listing?.value ?? EMPTY_BUSINESS}
             terms={terms}
             logoOwner={user.id}
-            onSave={saveMyListing}
-            submitLabel={listing ? "Update" : "Submit"}
-            successHref="/my-business/"
+            onSave={saveMyListing.bind(null, listing?.id ?? null)}
+            submitLabel={listing ? "Save changes" : "Publish listing"}
+            successHref="/my-business/?saved=1"
           />
+          {listing && (
+            <DeleteListing
+              name={listing.value.name}
+              onDelete={deleteMyListing.bind(null, listing.id)}
+            />
+          )}
         </Container>
       </section>
     </>
