@@ -8,8 +8,10 @@ const button =
 
 export function BusinessDashboard({
   listing,
+  saved = false,
 }: {
   listing: { slug: string; status: "draft" | "published" };
+  saved?: boolean;
 }) {
   return (
     <section className="desk:pt-[240px] min-h-[85vh] bg-[#131a1d] pt-[180px] pb-[100px] text-white">
@@ -20,6 +22,11 @@ export function BusinessDashboard({
             <br />
             Business
           </h1>
+          {saved && (
+            <p role="status" className="text-brand mb-5 text-sm">
+              Your listing has been saved.
+            </p>
+          )}
           <form action={signOut}>
             <button type="submit" className={button}>
               Logout
@@ -43,6 +50,12 @@ export function BusinessDashboard({
           <FaPenNib className="size-10" aria-hidden />
           <Link href="/my-business/?edit=1" className={button}>
             Edit your page
+          </Link>
+          <Link
+            href="/my-business/?edit=1#delete-listing"
+            className="text-muted hover:text-ink text-sm underline"
+          >
+            Delete listing
           </Link>
         </div>
       </Container>

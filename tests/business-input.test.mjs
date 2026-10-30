@@ -48,3 +48,24 @@ test("short description accepts the maximum length and rejects longer descriptio
     "error" in cleanBusiness({ ...listing, shortDescription: "x".repeat(201) }),
   );
 });
+
+test("closed days are preserved and incomplete opening times are rejected", () => {
+  const valid = cleanBusiness({
+    ...listing,
+    openingHours: { mon: null, tue: { open: "09:00", close: "17:00" } },
+  });
+  assert.ok(!("error" in valid));
+  assert.equal(valid.row.opening_hours.mon, null);
+  assert.deepEqual(valid.row.opening_hours.tue, {
+    open: "09:00",
+    close: "17:00",
+  });
+  for (const hours of [
+    { open: "09:00", close: "" },
+    { open: "", close: "17:00" },
+  ]) {
+    assert.ok(
+      "error" in cleanBusiness({ ...listing, openingHours: { mon: hours } }),
+    );
+  }
+});
