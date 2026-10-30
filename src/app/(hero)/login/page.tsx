@@ -16,7 +16,7 @@ export default function LoginPage() {
         or{" "}
         <Link
           href="/user-registration/"
-          className="hover:text-brand text-white"
+          className="text-brand font-semibold hover:underline"
         >
           create an account
         </Link>

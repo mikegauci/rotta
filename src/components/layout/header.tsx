@@ -58,8 +58,9 @@ function HeaderView({
   navigation: NavItem[];
 }) {
   // Remember which page the menu was opened on so navigating closes it.
+  // Without a pathname (the prerendered fallback) the menu is always closed.
   const [openOn, setOpenOn] = useState<string | null>(null);
-  const open = openOn === pathname;
+  const open = pathname !== null && openOn === pathname;
   const transparent = variant === "transparent";
 
   const linkColour = transparent ? "text-white/75" : "text-body";
