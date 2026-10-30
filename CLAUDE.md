@@ -241,3 +241,9 @@ Validation: `supabase/tests/admin_user_management.sql` runs in a rolled-back tra
 The login form accepts either the existing username or email with the same password. Username lookup is case-insensitive, trims outer whitespace, and escapes wildcard characters for an exact profile match. Account emails are resolved only on the server; failed attempts use one generic message and preserve only the submitted identifier. Email login, cached email-only forms, and safe destination redirects remain supported. No schema change.
 
 Validation: all 16 Node tests, typecheck and targeted ESLint passed. Real Auth checks and signed-in browser checks covered email, mixed-case/whitespace username login, the My Business redirect, wrong-password rejection and logout. The disposable business-owner test account and local credentials were removed; no listing or email was created.
+
+### Daily Supabase heartbeat
+
+`/api/cron/heartbeat/` performs a read-only, anonymous query for one published page ID, with a 10-second timeout. Vercel Cron schedules it daily at 08:00 UTC. It reuses the existing `CRON_SECRET`; the checkout-maintenance cron remains at 03:17 UTC and no payment code is called by the heartbeat. Missing/invalid authentication returns 401; database failures or an empty result return 503; success returns 200 with a timestamp. Responses are no-store/noindex. Daily activity reduces inactivity risk but does not guarantee that a free Supabase project will never pause.
+
+Validation: lint, typecheck, all 16 Node tests and the production build passed. A local production-server check verified missing/wrong-secret denial, an authenticated live Supabase read, no-store/noindex headers, and a response containing only status and timestamp. The existing production cron secret is sensitive and was preserved without rotation.
