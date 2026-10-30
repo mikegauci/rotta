@@ -210,10 +210,6 @@ export function AddEvent() {
               defaultValue={f?.description}
               className="focus:border-brand mt-2 w-full border border-[#191919] bg-transparent p-2 text-sm focus:outline-none"
             />
-            <span className="text-[11px] text-[#666] italic">
-              Disclaimer: Please do not include any emojis in the event
-              description.
-            </span>
           </label>
           <div className="md:col-span-6">
             <Label>Upload Event Poster</Label>
