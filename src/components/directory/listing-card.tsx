@@ -19,6 +19,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
             width={listing.logo.width ?? 280}
             height={listing.logo.height ?? 280}
             sizes="140px"
+            unoptimized={
+              listing.logo.size_bytes > 0 && listing.logo.size_bytes < 10_000
+            }
             className="h-auto w-full rounded-[10px]"
           />
         ) : (

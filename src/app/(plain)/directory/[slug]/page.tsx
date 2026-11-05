@@ -148,6 +148,10 @@ async function ListingView({
                   width={business.logo.width ?? 300}
                   height={business.logo.height ?? 300}
                   sizes="150px"
+                  unoptimized={
+                    business.logo.size_bytes > 0 &&
+                    business.logo.size_bytes < 10_000
+                  }
                   className="w-[150px]"
                 />
               ) : (

@@ -22,7 +22,7 @@ export type Listing = {
   name: string;
   shortDescription: string;
   location: string;
-  logo: MediaInfo | null;
+  logo: (MediaInfo & { size_bytes: number }) | null;
   termIds: string[];
   search: string; // lower-cased text for the keyword search
 };
@@ -77,7 +77,7 @@ export async function getDirectory() {
       .from("businesses")
       .select(
         `id, slug, name, short_description, location, description,
-        logo:media(path, width, height, alt), terms:business_terms(term_id)`,
+        logo:media(path, width, height, alt, size_bytes), terms:business_terms(term_id)`,
       )
       .eq("status", "published")
       .order("created_at", { ascending: false }),
@@ -171,7 +171,7 @@ export async function getBusiness(slug: string): Promise<Business | null> {
     .select(
       `id, slug, name, short_description, location, description, address,
       phone, phone_2, email, website, opening_hours, seo,
-      logo:media(path, width, height, alt)`,
+      logo:media(path, width, height, alt, size_bytes)`,
     )
     .eq("slug", slug)
     .eq("status", "published")
