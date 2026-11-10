@@ -182,9 +182,7 @@ async function ListingView({
           <Link href="/directory/search-results/" className="text-brand">
             Back to Search Results
           </Link>
-          <Suspense fallback={null}>
-            <OwnerListingLink businessId={business.id} />
-          </Suspense>
+          <OwnerListingLink businessId={business.id} />
         </div>
       </Container>
     </article>

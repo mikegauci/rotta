@@ -21,7 +21,7 @@ export const WATCH_HERO_VIDEO = mediaUrl("wp/2021/01/rotta-video-bg.mp4");
 export async function getWatchSeries(): Promise<WatchSeries[]> {
   "use cache";
   cacheTag("videos");
-  cacheLife("hours");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("video_series")
     .select(

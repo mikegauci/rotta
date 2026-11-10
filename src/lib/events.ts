@@ -52,7 +52,7 @@ function toSummary(row: SummaryRow): EventSummary {
 export async function getEvents(): Promise<EventSummary[]> {
   "use cache";
   cacheTag("events");
-  cacheLife("hours");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("events")
     .select(SUMMARY)
@@ -66,7 +66,7 @@ export async function getEvents(): Promise<EventSummary[]> {
 export async function getEvent(slug: string): Promise<EventDetail | null> {
   "use cache";
   cacheTag("events", `event:${slug}`);
-  cacheLife("hours");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("events")
     .select(
@@ -112,7 +112,7 @@ export type EventProduct = {
 export async function getPreviousEventProducts(): Promise<EventProduct[]> {
   "use cache";
   cacheTag("products");
-  cacheLife("days");
+  cacheLife("weeks");
   const { data } = await publicDb
     .from("products")
     .select(

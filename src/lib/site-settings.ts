@@ -3,7 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { publicDb } from "@/lib/supabase/public";
 export async function getSiteSettings() {
   "use cache";
-  cacheLife("hours");
+  cacheLife("weeks");
   cacheTag("site-settings");
   const { data, error } = await publicDb
     .from("settings")

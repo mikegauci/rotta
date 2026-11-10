@@ -20,6 +20,17 @@ export async function GET(
     .in("path", candidates)
     .limit(candidates.length);
   const found = candidates.find((c) => data?.some((m) => m.path === c));
-  if (!found) return new Response("Not found", { status: 404 });
-  return Response.redirect(mediaUrl(found), 301);
+  // Crawlers keep asking for the same old URLs: let the CDN answer repeats.
+  if (!found)
+    return new Response("Not found", {
+      status: 404,
+      headers: { "Cache-Control": "public, max-age=0, s-maxage=86400" },
+    });
+  return new Response(null, {
+    status: 301,
+    headers: {
+      Location: mediaUrl(found),
+      "Cache-Control": "public, max-age=86400, s-maxage=31536000",
+    },
+  });
 }

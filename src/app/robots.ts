@@ -16,6 +16,10 @@ export default function robots(): MetadataRoute.Robots {
         "/cart/",
         "/checkout/",
         "/my-business/",
+        // Filter and calendar-month combinations are endless and each one
+        // is rendered on demand. The pages themselves stay crawlable.
+        "/directory/search-results/?",
+        "/events/?",
       ],
     },
     sitemap: `${env.siteUrl}/sitemap.xml`,

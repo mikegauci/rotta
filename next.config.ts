@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
     ],
   },
   partialPrefetching: true,
+  // Next.js renders every page on the server for the crawlers on this list
+  // (Facebook, Bing, Apple...) so their metadata is never streamed, which
+  // skips the prerendered copy and bills a function run per crawler hit.
+  // Prerendered pages already carry their metadata in <head>, so no crawler
+  // needs that: the pattern below matches none of them.
+  htmlLimitedBots: /rotta-no-html-limited-bots/,
   // Event posters are shrunk in the browser first; this is the safety cap.
   experimental: { serverActions: { bodySizeLimit: "4mb" } },
   turbopack: {

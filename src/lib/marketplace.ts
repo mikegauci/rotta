@@ -59,7 +59,7 @@ function toCard(row: CardRow): VehicleCard {
 export async function getVehicles(): Promise<VehicleCard[]> {
   "use cache";
   cacheTag("vehicles");
-  cacheLife("days");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("vehicles")
     .select(CARD)
@@ -72,7 +72,7 @@ export async function getVehicles(): Promise<VehicleCard[]> {
 export async function getVehicle(slug: string): Promise<Vehicle | null> {
   "use cache";
   cacheTag("vehicles", `vehicle:${slug}`);
-  cacheLife("days");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("vehicles")
     .select(
