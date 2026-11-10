@@ -7,7 +7,7 @@ export const PRODUCT_SELECT =
 export async function getProducts(): Promise<Product[]> {
   "use cache";
   cacheTag("products");
-  cacheLife("hours");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("products")
     .select(PRODUCT_SELECT)
@@ -19,7 +19,7 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProduct(slug: string) {
   "use cache";
   cacheTag("products", `product:${slug}`);
-  cacheLife("hours");
+  cacheLife("weeks");
   return (await getProducts()).find((p) => p.slug === slug) ?? null;
 }
 export async function getShopSettings() {

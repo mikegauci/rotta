@@ -67,7 +67,7 @@ export const STEP_PARAMS: Record<TermKind, string> = {
 export async function getDirectory() {
   "use cache";
   cacheTag("directory");
-  cacheLife("hours");
+  cacheLife("weeks");
   const [terms, listings] = await Promise.all([
     publicDb
       .from("directory_terms")
@@ -165,7 +165,7 @@ export async function searchListings(filters: Filters) {
 export async function getBusiness(slug: string): Promise<Business | null> {
   "use cache";
   cacheTag("directory", `business:${slug}`);
-  cacheLife("hours");
+  cacheLife("weeks");
   const { data, error } = await publicDb
     .from("businesses")
     .select(

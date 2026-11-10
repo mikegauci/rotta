@@ -76,7 +76,7 @@ function toSummary(
 export async function getPostSummaries(): Promise<PostSummary[]> {
   "use cache";
   cacheTag("posts");
-  cacheLife("hours");
+  cacheLife("weeks");
   const [{ data, error }, byId] = await Promise.all([
     publicDb
       .from("posts")
@@ -96,7 +96,7 @@ export async function getRecentPosts(limit = 4) {
 export async function getPost(slug: string): Promise<Post | null> {
   "use cache";
   cacheTag("posts", `post:${slug}`);
-  cacheLife("hours");
+  cacheLife("weeks");
   const [{ data, error }, byId] = await Promise.all([
     publicDb
       .from("posts")
@@ -148,7 +148,7 @@ export type ArchiveKind = "category" | "tag" | "author";
 export async function getArchive(kind: ArchiveKind, slug: string) {
   "use cache";
   cacheTag("posts");
-  cacheLife("hours");
+  cacheLife("weeks");
   const posts = await getPostSummaries();
   if (kind === "author") {
     const matches = posts.filter((p) => p.author?.username === slug);
@@ -170,6 +170,7 @@ export async function getArchive(kind: ArchiveKind, slug: string) {
 export async function getArchiveParams(kind: ArchiveKind) {
   "use cache";
   cacheTag("posts");
+  cacheLife("weeks");
   const posts = await getPostSummaries();
   if (kind === "author") {
     return [
@@ -186,7 +187,7 @@ export async function getArchiveParams(kind: ArchiveKind) {
 export async function getPageHero(path: string): Promise<MediaInfo | null> {
   "use cache";
   cacheTag("pages");
-  cacheLife("days");
+  cacheLife("weeks");
   const { data } = await publicDb
     .from("pages")
     .select("hero:media!pages_hero_media_id_fkey(path, width, height, alt)")

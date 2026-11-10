@@ -126,9 +126,9 @@ function FooterLink({
   );
 }
 
-// Cached so the footer can still be prerendered; refreshes daily.
+// Cached so the footer can still be prerendered; refreshes weekly.
 async function CopyrightYear() {
   "use cache";
-  cacheLife("days");
+  cacheLife("weeks");
   return new Date().getFullYear();
 }
