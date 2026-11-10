@@ -51,11 +51,9 @@ export function StepFilter({ steps }: { steps: Step[] }) {
     if (index === previousIndex.current) return;
     previousIndex.current = index;
     promptRef.current?.focus({ preventScroll: true });
-    document.getElementById("directory-step-search")?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
-    });
+    document
+      .getElementById("directory-step-search")
+      ?.scrollIntoView({ behavior: "instant" });
   }, [index]);
 
   function submit() {
