@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 
 export type StepOption = { label: string; slug: string; icon: string | null };
@@ -43,6 +43,20 @@ export function StepFilter({ steps }: { steps: Step[] }) {
   );
   const step = steps[index];
   const last = index === steps.length - 1;
+  const isServices = step.param === "services";
+  const promptRef = useRef<HTMLHeadingElement>(null);
+  const previousIndex = useRef(index);
+
+  useEffect(() => {
+    if (index === previousIndex.current) return;
+    previousIndex.current = index;
+    promptRef.current?.focus({ preventScroll: true });
+    document.getElementById("directory-step-search")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
+  }, [index]);
 
   function submit() {
     const params = new URLSearchParams();
@@ -57,7 +71,11 @@ export function StepFilter({ steps }: { steps: Step[] }) {
         className="desk:col-span-8 desk:col-start-3 flex flex-wrap justify-center gap-x-[30px] text-[17px] text-black"
       >
         {steps.map((s, i) => (
-          <span key={s.param} className={i === index ? "font-bold" : ""}>
+          <span
+            key={s.param}
+            aria-current={i === index ? "step" : undefined}
+            className={i === index ? "font-bold" : ""}
+          >
             {s.nav}
           </span>
         ))}
@@ -65,12 +83,20 @@ export function StepFilter({ steps }: { steps: Step[] }) {
 
       <div className="desk:col-span-2 desk:col-start-1 font-bold text-black">
         <p className="text-[15px] leading-[22.5px]">{step.number}</p>
-        <p className="text-[30px] leading-[45px]">{step.prompt}</p>
+        <h3
+          ref={promptRef}
+          tabIndex={-1}
+          className="text-[30px] leading-[45px] focus:outline-none"
+        >
+          {step.prompt}
+        </h3>
       </div>
 
       <fieldset className="desk:col-span-8 desk:col-start-3">
         <legend className="sr-only">{step.nav}</legend>
-        <div className="flex flex-wrap justify-center gap-5">
+        <div
+          className={`flex flex-wrap justify-center gap-5 ${isServices ? "-mt-3 max-h-[529px] content-start overflow-y-auto p-3" : ""}`}
+        >
           {step.options.map((option) => {
             const checked = picked[index] === option.label;
             return (
@@ -125,7 +151,7 @@ export function StepFilter({ steps }: { steps: Step[] }) {
 
       <div className="desk:col-span-2 desk:col-start-11 desk:block desk:h-0 hidden space-y-[72px]">
         <Ad />
-        {step.param === "services" && <Ad />}
+        {isServices && <Ad />}
       </div>
 
       <div className="desk:col-span-12 desk:mt-[100px] flex justify-center gap-0.5">

@@ -42,7 +42,7 @@ export default async function DirectoryPage() {
         <DirectoryHero withSearch />
       </ManagedPageContent>
 
-      <section className="py-5">
+      <section id="directory-step-search" className="py-5">
         <div className="mx-auto max-w-[1400px]">
           <div className="py-10 text-center">
             <h2 className="text-heading text-[28px] leading-[1.2] md:text-[40px]">
