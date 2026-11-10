@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   // Keep the WordPress URL style (/directory/, /shop/...) for SEO parity.
   trailingSlash: true,
+  redirects() {
+    return [
+      {
+        source: "/shop/page/:page([0-9]+)/",
+        destination: "/shop/",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       new URL(
