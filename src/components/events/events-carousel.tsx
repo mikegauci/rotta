@@ -18,28 +18,50 @@ export type CarouselEvent = {
 // "Upcoming Events": two cards per view on desktop, one on phones, with
 // arrows and dots like the live Slick carousel.
 export function EventsCarousel({ events }: { events: CarouselEvent[] }) {
-  const [index, setIndex] = useState(0);
-  if (!events.length)
-    return <p className="mb-10">No upcoming events at the moment.</p>;
-  const last = Math.max(0, events.length - 1);
-  const go = (n: number) => setIndex(Math.min(last, Math.max(0, n)));
+  const [{ position, animate }, setSlide] = useState({
+    position: 1,
+    animate: false,
+  });
+  const count = events.length;
+  if (!count) return <p className="mb-10">No upcoming events at the moment.</p>;
+
+  const loops = count > 1;
+  // The leading copy allows a backward wrap. Two trailing copies keep both
+  // desktop slots filled while sliding forward across the boundary.
+  const slides = loops
+    ? [events[count - 1], ...events, ...events.slice(0, 2)]
+    : events;
+  const offset = loops ? position : 0;
+  const index = loops ? (position + count - 1) % count : 0;
+  const wrapping = loops && (position === 0 || position === count + 1);
+  const go = (position: number) => setSlide({ position, animate: true });
 
   return (
     <div className="relative">
       <div className="overflow-hidden">
         <ul
-          className="flex transition-transform duration-500 [--slide:100%] md:[--slide:50%]"
-          style={{ transform: `translateX(calc(-${index} * var(--slide)))` }}
+          className={`flex [--slide:100%] md:[--slide:50%] ${animate ? "transition-transform duration-500 motion-reduce:duration-[1ms]" : ""}`}
+          style={{ transform: `translateX(calc(${-offset} * var(--slide)))` }}
+          onTransitionEnd={(event) => {
+            if (
+              wrapping &&
+              event.target === event.currentTarget &&
+              event.propertyName === "transform"
+            ) {
+              // Rebase to the identical real view before the next move.
+              setSlide({ position: index + 1, animate: false });
+            }
+          }}
         >
-          {events.map((e, i) => (
+          {slides.map((e, i) => (
             <li
-              key={e.slug}
+              key={`${e.slug}-${i}`}
               className="w-full shrink-0 pr-2.5 md:w-1/2"
-              aria-hidden={i < index || i > index + 1}
+              aria-hidden={i < offset || i > offset + 1}
             >
               <Link
                 href={`/events/${e.slug}/`}
-                tabIndex={i < index || i > index + 1 ? -1 : undefined}
+                tabIndex={i < offset || i > offset + 1 ? -1 : undefined}
                 className="block transition-all duration-300 hover:-translate-y-1.5 hover:opacity-75"
               >
                 <div className="relative h-[300px] bg-[#eee]">
@@ -66,23 +88,21 @@ export function EventsCarousel({ events }: { events: CarouselEvent[] }) {
           ))}
         </ul>
       </div>
-      {events.length > 1 && (
+      {loops && (
         <>
           <button
             type="button"
             aria-label="Previous events"
-            onClick={() => go(index - 1)}
-            disabled={index === 0}
-            className="absolute top-[40%] left-5 z-10 grid size-[60px] -translate-y-1/2 place-items-center rounded-full bg-white/80 text-black disabled:opacity-0"
+            onClick={() => !wrapping && go(position - 1)}
+            className="absolute top-[40%] left-5 z-10 grid size-[60px] -translate-y-1/2 place-items-center rounded-full bg-white/80 text-black"
           >
             <FiChevronLeft className="size-10" />
           </button>
           <button
             type="button"
             aria-label="Next events"
-            onClick={() => go(index + 1)}
-            disabled={index >= last}
-            className="absolute top-[40%] right-5 z-10 grid size-[60px] -translate-y-1/2 place-items-center rounded-full bg-white/80 text-black disabled:opacity-0"
+            onClick={() => !wrapping && go(position + 1)}
+            className="absolute top-[40%] right-5 z-10 grid size-[60px] -translate-y-1/2 place-items-center rounded-full bg-white/80 text-black"
           >
             <FiChevronRight className="size-10" />
           </button>
@@ -93,7 +113,7 @@ export function EventsCarousel({ events }: { events: CarouselEvent[] }) {
                 type="button"
                 aria-label={`Show ${e.title}`}
                 aria-current={i === index}
-                onClick={() => go(i)}
+                onClick={() => i !== index && go(i + 1)}
                 className="grid size-5 place-items-center"
               >
                 <span
