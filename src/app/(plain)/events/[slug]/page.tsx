@@ -1,7 +1,7 @@
+import { redirectOrNotFound } from "@/lib/redirects";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Container } from "@/components/layout/container";
 import {
@@ -96,7 +96,7 @@ async function EventView({
 }: Pick<PageProps<"/events/[slug]">, "params">) {
   const { slug } = await params;
   const event = await getEvent(slug);
-  if (!event) notFound();
+  if (!event) return redirectOrNotFound(`/events/${slug}/`);
 
   return (
     <article>

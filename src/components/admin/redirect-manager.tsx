@@ -17,7 +17,7 @@ export default async function RedirectManager() {
     <>
       <AdminPageHeader
         title="Redirect manager"
-        description="Changes can take up to a minute to reach visitors. Use internal paths; loops are rejected."
+        description="Redirects from removed or renamed pages work straight away. A redirect from a page that still exists starts with the next site deployment. Use internal paths; loops are rejected."
       />
       <ActionForm action={saveRedirect} className="mb-6 flex flex-wrap gap-3">
         <input

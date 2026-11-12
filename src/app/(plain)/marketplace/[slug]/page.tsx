@@ -1,7 +1,7 @@
+import { redirectOrNotFound } from "@/lib/redirects";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
   FaFacebook,
@@ -152,7 +152,7 @@ async function VehicleView({
 }: Pick<PageProps<"/marketplace/[slug]">, "params">) {
   const { slug } = await params;
   const vehicle = await getVehicle(slug);
-  if (!vehicle) notFound();
+  if (!vehicle) return redirectOrNotFound(`/marketplace/${slug}/`);
   const others = (await getVehicles()).filter((v) => v.slug !== slug);
 
   return (

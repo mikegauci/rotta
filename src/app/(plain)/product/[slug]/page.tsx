@@ -1,5 +1,5 @@
+import { redirectOrNotFound } from "@/lib/redirects";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { getProduct, getProducts, getCatalogueProducts } from "@/lib/shop";
 import { ProductDetail } from "@/components/shop/product-detail";
 import { ProductCard } from "@/components/shop/product-card";
@@ -25,8 +25,9 @@ export async function generateMetadata({
   });
 }
 async function Content({ params }: { params: Promise<{ slug: string }> }) {
-  const p = await getProduct((await params).slug);
-  if (!p) notFound();
+  const { slug } = await params;
+  const p = await getProduct(slug);
+  if (!p) return redirectOrNotFound(`/product/${slug}/`);
   return (
     <Container className="desk:py-20 py-12">
       <ProductDetail product={p} />
