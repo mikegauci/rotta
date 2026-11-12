@@ -1,85 +1,43 @@
-// Redirects served by the proxy: the `redirects` table (imported Redirection
-// rules and CMS slug renames) plus fixed rules for retired WordPress URLs.
-import { env } from "@/lib/env";
+// Runtime half of the redirects. Rules known at build time (the `redirects`
+// table and the retired WordPress URLs) are served by `redirects()` in
+// next.config.ts, at the CDN and without running any code. Rules added since
+// the last deploy (CMS slug renames, new admin redirects) are caught here,
+// at the point where a page would otherwise answer 404.
+import "server-only";
+import { cacheLife, cacheTag } from "next/cache";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { publicDb } from "@/lib/supabase/public";
 
 type Rule = { destination: string; permanent: boolean };
-
-const TTL_MS = 60_000;
-let cache: { rules: Map<string, Rule>; expires: number } | null = null;
-let loading: Promise<Map<string, Rule>> | null = null;
-
-async function loadRules(): Promise<Map<string, Rule>> {
-  const res = await fetch(
-    `${env.supabaseUrl}/rest/v1/redirects?select=source,destination,permanent`,
-    {
-      headers: { apikey: env.supabasePublishableKey },
-      cache: "no-store",
-    },
-  );
-  if (!res.ok) throw new Error(`redirects: HTTP ${res.status}`);
-  const rows = (await res.json()) as {
-    source: string;
-    destination: string;
-    permanent: boolean;
-  }[];
-  return new Map(
-    rows.map((r) => [
-      normalize(r.source),
-      { destination: r.destination, permanent: r.permanent },
-    ]),
-  );
-}
-
-// Cached per server instance; a failed refresh keeps the previous rules.
-async function tableRules(): Promise<Map<string, Rule>> {
-  if (cache && cache.expires > Date.now()) return cache.rules;
-  loading ??= loadRules()
-    .then((rules) => {
-      cache = { rules, expires: Date.now() + TTL_MS };
-      return rules;
-    })
-    .catch((error) => {
-      console.error(error);
-      if (cache) cache.expires = Date.now() + TTL_MS;
-      return cache?.rules ?? new Map<string, Rule>();
-    })
-    .finally(() => {
-      loading = null;
-    });
-  return loading;
-}
 
 function normalize(path: string) {
   const p = path.toLowerCase();
   return p.endsWith("/") ? p : `${p}/`;
 }
 
-// WordPress URLs with no page of their own on the new site.
-function legacyRule(path: string): Rule | null {
-  if (/^\/(sitemap_index|[a-z_]+-sitemap\d*)\.xml$/.test(path))
-    return { destination: "/sitemap.xml", permanent: true };
-  if (/^\/product-(category|tag)\//.test(path))
-    return { destination: "/shop/", permanent: true };
-  if (/^\/frm_display\//.test(path))
-    return { destination: "/", permanent: true };
-  if (
-    path === "/directory/business-details/" ||
-    path === "/manage-directory-detail-page/"
-  )
-    return { destination: "/my-business/", permanent: true };
-  if (path === "/wp-login.php" || path.startsWith("/wp-admin"))
-    return { destination: "/login/", permanent: false };
-  if (path === "/feed/" || /^\/(category|tag)\/[^/]+\/feed\/$/.test(path))
-    return { destination: "/blog/", permanent: true };
-  return null;
+async function getRedirects(): Promise<Record<string, Rule>> {
+  "use cache";
+  cacheTag("redirects");
+  cacheLife("weeks");
+  const { data, error } = await publicDb
+    .from("redirects")
+    .select("source, destination, permanent");
+  if (error) throw error;
+  return Object.fromEntries(
+    data.map((r) => [
+      normalize(r.source),
+      { destination: r.destination, permanent: r.permanent },
+    ]),
+  );
 }
 
-export async function findRedirect(pathname: string): Promise<Rule | null> {
-  const legacy = legacyRule(pathname);
-  if (legacy) return legacy;
-  if (/^\/(_next|api|admin|auth)\//.test(pathname)) return null;
-  const rule = (await tableRules()).get(normalize(pathname));
-  return rule && normalize(rule.destination) !== normalize(pathname)
-    ? rule
-    : null;
+// For pages whose content is missing: follow a redirect if one exists for
+// this path, otherwise 404.
+export async function redirectOrNotFound(pathname: string): Promise<never> {
+  const rule = (await getRedirects())[normalize(pathname)];
+  if (rule && normalize(rule.destination) !== normalize(pathname)) {
+    if (rule.permanent) permanentRedirect(rule.destination);
+    redirect(rule.destination);
+  }
+  notFound();
 }

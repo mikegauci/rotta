@@ -29,6 +29,7 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 
 function refresh(slugs: string[]) {
   updateTag("events");
+  updateTag("redirects");
   for (const slug of slugs) updateTag(`event:${slug}`);
   revalidatePath("/admin/events/");
 }

@@ -165,6 +165,7 @@ export async function saveTerm(input: TermInput) {
           : error.message,
     };
   updateTag("directory");
+  updateTag("redirects");
   revalidatePath("/admin/directory/filters/");
   return { id: data.id };
 }
@@ -175,6 +176,7 @@ export async function deleteTerm(id: string) {
   const { error } = await db.from("directory_terms").delete().eq("id", id);
   if (error) return { error: error.message };
   updateTag("directory");
+  updateTag("redirects");
   revalidatePath("/admin/directory/filters/");
   return { ok: true };
 }

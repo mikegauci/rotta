@@ -32,6 +32,7 @@ const COLOR = /^#[0-9a-f]{6}$/i;
 
 function refresh(slugs: string[]) {
   updateTag("vehicles");
+  updateTag("redirects");
   for (const slug of slugs) updateTag(`vehicle:${slug}`);
   revalidatePath("/admin/marketplace/");
 }

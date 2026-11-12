@@ -133,6 +133,7 @@ async function saveRedirectWork(form: FormData) {
       { onConflict: "source" },
     );
   if (result.error) throw result.error;
+  updateTag("redirects");
   revalidatePath("/admin/tools/");
   return;
 }
@@ -144,6 +145,7 @@ async function deleteRedirectWork(form: FormData) {
     .delete()
     .eq("id", String(form.get("id")));
   if (error) throw error;
+  updateTag("redirects");
   revalidatePath("/admin/redirects/");
 }
 async function saveSiteSettingsWork(form: FormData) {

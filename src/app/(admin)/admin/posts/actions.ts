@@ -28,6 +28,7 @@ export type SaveResult = { error: string } | { id: string; slug: string };
 function refresh(slugs: string[]) {
   // The public blog reads are cached under these tags.
   updateTag("posts");
+  updateTag("redirects");
   for (const slug of slugs) updateTag(`post:${slug}`);
   revalidatePath("/admin/posts/");
 }
